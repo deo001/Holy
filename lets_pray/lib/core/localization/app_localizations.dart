@@ -1,0 +1,302 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// Riverpod Provider to manage and toggle app language (default is English)
+final localeProvider = StateProvider<String>((ref) => 'en'); // 'en' or 'sw'
+
+class AppStrings {
+  // Translate a key based on the active locale provider
+  static String of(WidgetRef ref, String key) {
+    final locale = ref.watch(localeProvider);
+    return _translations[locale]?[key] ?? _translations['en']?[key] ?? key;
+  }
+
+  // Raw translation map
+  static const Map<String, Map<String, String>> _translations = {
+    'en': {
+      // Bottom Tabs
+      'tab_home': 'Home',
+      'tab_bible': 'Bible',
+      'tab_rosary': 'Rosary',
+      'tab_journal': 'Journal',
+      'tab_space': 'Space',
+
+      // Dashboard
+      'dashboard_title': "LET'S PRAY",
+      'dashboard_welcome': 'Welcome back, Faithful',
+      'dashboard_season': 'Liturgical Season',
+      'dashboard_saint': 'Saint of the Day',
+      'dashboard_quote': '"Start by doing what\'s necessary; then do what\'s possible; and suddenly you are doing the impossible."',
+      'dashboard_daily_insp': 'Daily Inspiration',
+      'card_bible_title': 'Scripture study',
+      'card_bible_subtitle': 'Deepen your knowledge of the Word',
+      'card_rosary_title': 'Holy Rosary',
+      'card_rosary_subtitle': 'Meditate on the life of Christ',
+
+      // Bible Screen
+      'bible_title': 'HOLY BIBLE',
+      'bible_ot': 'OLD TESTAMENT',
+      'bible_nt': 'NEW TESTAMENT',
+      'bible_deutero': 'DEUTERO',
+      'bible_select_chapter': 'Select Chapter',
+      'bible_select_book': 'Select a book',
+      'bible_highlighted': 'Verse Highlighted',
+      'bible_highlight_cleared': 'Highlight cleared',
+      'bible_fallback_notice': 'Swahili translation unavailable. Showing English (Douay-Rheims) fallback.',
+      'bible_verse_options': 'Verse Options',
+      'bible_highlight_color': 'Highlight Color',
+      'bible_translation_label': 'Translation',
+
+      // Rosary Screen
+      'rosary_title': 'TACTILE ROSARY',
+      'rosary_lyrics': 'Lyrics & Meditations',
+      'rosary_beads': 'Tactile Bead Tracker',
+      'rosary_mystery_day': 'Mystery of the Day',
+      'rosary_completed_prayers': 'Prayers completed',
+      'rosary_decade': 'Decade',
+      
+      // Catholic Prayers
+      'prayer_apostles_creed': 'Apostles\' Creed',
+      'prayer_our_father': 'Our Father',
+      'prayer_hail_mary': 'Hail Mary',
+      'prayer_glory_be': 'Glory Be',
+      'prayer_fatima': 'Fatima Prayer',
+      'prayer_hail_holy_queen': 'Hail Holy Queen',
+
+      // Catholic Prayers Text
+      'prayer_apostles_creed_text': 'I believe in God, the Father Almighty, Creator of heaven and earth; and in Jesus Christ, His only Son, our Lord: Who was conceived by the Holy Spirit, born of the Virgin Mary, suffered under Pontius Pilate, was crucified, died, and was buried. He descended into hell; the third day He arose again from the dead; He ascended into heaven, and sitteth at the right hand of God the Father Almighty; from thence He shall come to judge the living and the dead. I believe in the Holy Spirit, the Holy Catholic Church, the communion of Saints, the forgiveness of sins, the resurrection of the body, and life everlasting. Amen.',
+      'prayer_our_father_text': 'Our Father, Who art in heaven, hallowed be Thy name. Thy kingdom come. Thy will be done on earth as it is in heaven. Give us this day our daily bread. And forgive us our trespasses, as we forgive those who trespass against us. And lead us not into temptation, but deliver us from evil. Amen.',
+      'prayer_hail_mary_text': 'Hail Mary, full of grace, the Lord is with thee. Blessed art thou among women, and blessed is the fruit of thy womb, Jesus. Holy Mary, Mother of God, pray for us sinners, now and at the hour of our death. Amen.',
+      'prayer_glory_be_text': 'Glory be to the Father, and to the Son, and to the Holy Spirit. As it was in the beginning, is now, and ever shall be, world without end. Amen.',
+      'prayer_fatima_text': 'O my Jesus, forgive us our sins, save us from the fires of hell, lead all souls to heaven, especially those most in need of Thy mercy. Amen.',
+      'prayer_hail_holy_queen_text': 'Hail, Holy Queen, Mother of Mercy, our life, our sweetness and our hope! To thee do we cry, poor banished children of Eve; to thee do we send up our sighs, mourning and weeping in this valley of tears. Turn then, most gracious Advocate, thine eyes of mercy toward us, and after this our exile, show unto us the blessed fruit of thy womb, Jesus. O clement, O loving, O sweet Virgin Mary! Pray for us, O Holy Mother of God, that we may be made worthy of the promises of Christ. Amen.',
+      'prayer_concluding_prayer_text': 'O God, whose only begotten Son, by His life, death, and resurrection, has purchased for us the rewards of eternal salvation, grant, we beseech Thee, that meditating upon these mysteries of the Most Holy Rosary of the Blessed Virgin Mary, we may imitate what they contain and obtain what they promise, through the same Christ our Lord. Amen.',
+
+      // Mysteries
+      'mystery_joyful': 'Joyful Mysteries',
+      'mystery_sorrowful': 'Sorrowful Mysteries',
+      'mystery_glorious': 'Glorious Mysteries',
+      'mystery_luminous': 'Luminous Mysteries',
+
+      // Mystery Details
+      'mystery_joyful_title': 'The Joyful Mysteries',
+      'mystery_joyful_desc': 'Meditated on Mondays and Saturdays, focusing on the incarnation and early life of Christ.',
+      'mystery_joyful_dec_1': 'The Annunciation of the Lord',
+      'mystery_joyful_dec_2': 'The Visitation of Mary to Elizabeth',
+      'mystery_joyful_dec_3': 'The Birth of Jesus Christ',
+      'mystery_joyful_dec_4': 'The Presentation of Jesus in the Temple',
+      'mystery_joyful_dec_5': 'The Finding of Jesus in the Temple',
+      'mystery_joyful_scr_1': '"Hail, full of grace, the Lord is with thee: blessed art thou among women." (Luke 1:28)',
+      'mystery_joyful_scr_2': '"And whence is this to me, that the mother of my Lord should come to me?" (Luke 1:43)',
+      'mystery_joyful_scr_3': '"And she brought forth her firstborn son, and wrapped him in swaddling clothes..." (Luke 2:7)',
+      'mystery_joyful_scr_4': '"According as it is written in the law of the Lord: Every male opening the womb shall be called holy to the Lord." (Luke 2:23)',
+      'mystery_joyful_scr_5': '"And it came to pass, that after three days, they found him in the temple, sitting in the midst of the doctors..." (Luke 2:46)',
+
+      'mystery_sorrowful_title': 'The Sorrowful Mysteries',
+      'mystery_sorrowful_desc': 'Meditated on Tuesdays and Fridays, focusing on the Passion and Death of Jesus Christ.',
+      'mystery_sorrowful_dec_1': 'The Agony of Jesus in the Garden',
+      'mystery_sorrowful_dec_2': 'The Scourging of Jesus at the Pillar',
+      'mystery_sorrowful_dec_3': 'The Crowning of Jesus with Thorns',
+      'mystery_sorrowful_dec_4': 'The Carrying of the Cross by Jesus',
+      'mystery_sorrowful_dec_5': 'The Crucifixion and Death of Jesus',
+      'mystery_sorrowful_scr_1': '"And being in an agony, he prayed the longer." (Luke 22:43)',
+      'mystery_sorrowful_scr_2': '"Then Pilate therefore took Jesus, and scourged him." (John 19:1)',
+      'mystery_sorrowful_scr_3': '"And platting a crown of thorns, they put it upon his head..." (Matthew 27:29)',
+      'mystery_sorrowful_scr_4': '"And bearing his own cross, he went forth to that place which is called Calvary..." (John 19:17)',
+      'mystery_sorrowful_scr_5': '"And Jesus crying with a loud voice, said: Father, into thy hands I commend my spirit." (Luke 23:46)',
+
+      'mystery_glorious_title': 'The Glorious Mysteries',
+      'mystery_glorious_desc': 'Meditated on Wednesdays and Sundays, focusing on the Resurrection, Ascension, and glory of Heaven.',
+      'mystery_glorious_dec_1': 'The Resurrection of Jesus Christ',
+      'mystery_glorious_dec_2': 'The Ascension of Jesus into Heaven',
+      'mystery_glorious_dec_3': 'The Descent of the Holy Spirit at Pentecost',
+      'mystery_glorious_dec_4': 'The Assumption of Mary into Heaven',
+      'mystery_glorious_dec_5': 'The Coronation of Mary as Queen of Heaven',
+      'mystery_glorious_scr_1': '"He is not here; for he is risen, as he said." (Matthew 28:6)',
+      'mystery_glorious_scr_2': '"And it came to pass, while he blessed them, he departed from them, and was carried up into heaven." (Luke 24:51)',
+      'mystery_glorious_scr_3': '"And they were all filled with the Holy Ghost, and they began to speak with divers tongues..." (Acts 2:4)',
+      'mystery_glorious_scr_4': '"An elegant sign appeared in heaven: a woman clothed with the sun, and the moon under her feet..." (Revelation 12:1)',
+      'mystery_glorious_scr_5': '"And on her head a crown of twelve stars." (Revelation 12:1)',
+
+      'mystery_luminous_title': 'The Luminous Mysteries',
+      'mystery_luminous_desc': 'Meditated on Thursdays, focusing on the public ministry and revelations of Christ.',
+      'mystery_luminous_dec_1': 'The Baptism of Jesus in the Jordan',
+      'mystery_luminous_dec_2': 'The Wedding at Cana',
+      'mystery_luminous_dec_3': 'The Proclamation of the Kingdom of God',
+      'mystery_luminous_dec_4': 'The Transfiguration of Jesus',
+      'mystery_luminous_dec_5': 'The Institution of the Holy Eucharist',
+      'mystery_luminous_scr_1': '"And lo, a voice from heaven, saying: This is my beloved Son, in whom I am well pleased." (Matthew 3:17)',
+      'mystery_luminous_scr_2': '"This beginning of miracles did Jesus in Cana of Galilee; and manifested his glory..." (John 2:11)',
+      'mystery_luminous_scr_3': '"Jesus came into Galilee, preaching the gospel of the kingdom of God, and saying: The time is fulfilled..." (Mark 1:14-15)',
+      'mystery_luminous_scr_4': '"And he was transfigured before them. And his face did shine as the sun..." (Matthew 17:2)',
+      'mystery_luminous_scr_5': '"And taking bread, he gave thanks, and brake; and gave to them, saying: This is my body..." (Luke 22:19)',
+
+      // Journal Screen
+      'journal_title': 'PRAYER JOURNAL',
+      'journal_active': 'ACTIVE INTENTIONS',
+      'journal_answered': 'ANSWERED PRAISES',
+      'journal_new_intention': 'New Intention',
+      'journal_add_btn': 'Add Intention',
+      'journal_enter_title': 'Enter title...',
+      'journal_enter_desc': 'Enter description/prayer detail...',
+      'journal_save': 'Save',
+      'journal_cancel': 'Cancel',
+      'journal_set_reminder': 'Schedule Daily Reminder',
+      'journal_reminder_enabled': 'Reminder set for ',
+      'journal_reminder_disabled': 'Reminder disabled',
+
+      // Profile Screen
+      'profile_title': 'MY SPACE',
+      'profile_settings': 'Settings',
+      'profile_lang': 'Language / Lugha',
+      'profile_font_size': 'Scripture Font Size',
+      'profile_haptic': 'Haptic Feedback',
+      'profile_quiet_hours': 'Quiet Hours',
+      'profile_highlights': 'MY SCRIPTURE HIGHLIGHTS',
+      'profile_no_highlights': 'No highlighted verses yet.',
+      'profile_saved': 'Settings saved successfully',
+    },
+    'sw': {
+      // Bottom Tabs
+      'tab_home': 'Mwanzo',
+      'tab_bible': 'Biblia',
+      'tab_rosary': 'Rozari',
+      'tab_journal': 'Shajara',
+      'tab_space': 'Nafasi Yangu',
+
+      // Dashboard
+      'dashboard_title': 'TUSALI',
+      'dashboard_welcome': 'Karibu tena, Mwaminifu',
+      'dashboard_season': 'Msimu wa Liturjia',
+      'dashboard_saint': 'Mtakatifu wa Siku',
+      'dashboard_quote': '"Anza kwa kufanya kile kinachohitajika; kisha fanya kile kinachowezekana; na ghafla unafanya yasiyowezekana."',
+      'dashboard_daily_insp': 'Uvuvio wa Kila Siku',
+      'card_bible_title': 'Masomo ya Biblia',
+      'card_bible_subtitle': 'Kuza uelewa wako wa Neno la Mungu',
+      'card_rosary_title': 'Rozari Takatifu',
+      'card_rosary_subtitle': 'Tafakari maisha ya Kristo',
+
+      // Bible Screen
+      'bible_title': 'BIBLIA TAKATIFU',
+      'bible_ot': 'AGANO LA KALE',
+      'bible_nt': 'AGANO JIPYA',
+      'bible_deutero': 'DEUTEROKANONI',
+      'bible_select_chapter': 'Chagua Sura',
+      'bible_select_book': 'Chagua kitabu',
+      'bible_highlighted': 'Mstari Umewekwa Alama',
+      'bible_highlight_cleared': 'Alama imeondolewa',
+      'bible_fallback_notice': 'Tafsiri ya Kiswahili haipatikani. Inaonyesha Kiingereza (Douay-Rheims).',
+      'bible_verse_options': 'Chaguzi za Mstari',
+      'bible_highlight_color': 'Rangi ya Alama',
+      'bible_translation_label': 'Tafsiri',
+
+      // Rosary Screen
+      'rosary_title': 'ROZARI YA KUGUSA',
+      'rosary_lyrics': 'Maneno na Tafakari',
+      'rosary_beads': 'Mfuatiliaji wa Ushanga',
+      'rosary_mystery_day': 'Tafakari ya Siku',
+      'rosary_completed_prayers': 'Sala zilizokamilika',
+      'rosary_decade': 'Miongo',
+      
+      // Catholic Prayers
+      'prayer_apostles_creed': 'Kanuni ya Mitume',
+      'prayer_our_father': 'Baba Yetu',
+      'prayer_hail_mary': 'Salamu Maria',
+      'prayer_glory_be': 'Atukuzwe Baba',
+      'prayer_fatima': 'Sala ya Fatima',
+      'prayer_hail_holy_queen': 'Salamu Malkia',
+
+      // Catholic Prayers Text Swahili
+      'prayer_apostles_creed_text': 'Nasadiki kwa Mungu, Baba Mwenyezi, Muumba wa mbingu na dunia. Na kwa Yesu Kristo, Mwana wake wa pekee, Bwana wetu. Aliyetungwa mimba kwa uwezo wa Roho Mtakatifu, akazaliwa na Bikira Maria. Akateswa kwa mamlaka ya Ponsio Pilato, akasulibiwa, akafa, akazikwa. Akashuka kuzimu, siku ya tatu akafufuka katika wafu. Akapaa mbinguni, ameketi kuume kwa Mungu Baba Mwenyezi. Kutoka huko atakuja kuwahukumu wazima na wafu. Nasadiki kwa Roho Mtakatifu, Kanisa takatifu Katoliki, ushirika wa watakatifu, ondoleo la dhambi, ufufuko wa miili, na uzima wa milele. Amina.',
+      'prayer_our_father_text': 'Baba Yetu uliye mbinguni, jina lako litukuzwe; ufalme wako ufike, utakalo lifanyike duniani kama mbinguni. Utupe leo mkate wetu wa kila siku, utusamehe makosa yetu, kama tunavyowasamehe na sisi waliotukosea. Usitutie katika kishawishi, lakini utuepushe na yule mwovu. Amina.',
+      'prayer_hail_mary_text': 'Salamu Maria, umejaa neema, Bwana yu nawe. Umebarikiwa kuliko wanawake wote, na Yesu mzao wa tumbo lako amebarikiwa. Maria Mtakatifu, Mama wa Mungu, utuombee sisi wakosefu, sasa na saa ya kufa kwetu. Amina.',
+      'prayer_glory_be_text': 'Atukuzwe Baba, na Mwana, na Roho Mtakatifu. Kama mwanzo, na sasa, na siku zote, na milele. Amina.',
+      'prayer_fatima_text': 'Ee Yesu wangu, utusamehe dhambi zetu, utuepushe na moto wa milele, ongoza roho zote mbinguni, hasa wale wanaohitaji zaidi huruma yako. Amina.',
+      'prayer_hail_holy_queen_text': 'Salamu Malkia, Mama mwenye rehema, uzima, utamu na matumaini yetu, salamu! Sisi wana wa Eva tuliopotezwa, tunakulilia, tunapiga yowe tukilalamika na kulia katika bonde hili la machozi. Haya basi, Mwombezi wetu, utugeuzie macho yako ya rehema; na ukimaliza ugeni huu, utuonyeshe Yesu, mzao mbarikiwa wa tumbo lako. Ee mpole, Ee mwema, Ee Bikira Maria mtamu! Utuombee, Mama Mtakatifu wa Mungu, ili tufanywe wastahili ahadi za Kristo. Amina.',
+      'prayer_concluding_prayer_text': 'Ee Mungu, ambaye Mwanao wa pekee, kwa maisha, kifo na ufufuko wake, alitupatia tuzo za wokovu wa milele; tunakuomba, utujalie kwamba tukitafakari masumbuko haya ya Rozari Takatifu ya Bikira Maria Mbarikiwa, tupate kuiga yale yaliyomo na kupata yale yaliyoahidiwa, kwa njia ya Kristo Bwana wetu. Amina.',
+
+      // Mysteries
+      'mystery_joyful': 'Masumbuko ya Furaha',
+      'mystery_sorrowful': 'Masumbuko ya Huzuni',
+      'mystery_glorious': 'Masumbuko ya Utukufu',
+      'mystery_luminous': 'Masumbuko ya Mwanga',
+
+      // Mystery Details Swahili
+      'mystery_joyful_title': 'Masumbuko ya Furaha',
+      'mystery_joyful_desc': 'Hutafakariwa Jumatatu na Jumamosi, yakilenga umwilisho na maisha ya mapema ya Kristo.',
+      'mystery_joyful_dec_1': 'Kupashwa Habari Bikira Maria kwamba atamzaa Masiha',
+      'mystery_joyful_dec_2': 'Maria kumtembelea mtakatifu Elizabeti',
+      'mystery_joyful_dec_3': 'Kuzaliwa kwa Yesu Kristo huko Bethlehemu',
+      'mystery_joyful_dec_4': 'Yesu kutolewa Hekaluni',
+      'mystery_joyful_dec_5': 'Yesu kupotea na kupatikana Hekaluni',
+      'mystery_joyful_scr_1': '"Salamu, umejaa neema, Bwana yu nawe: umebarikiwa kuliko wanawake wote." (Luka 1:28)',
+      'mystery_joyful_scr_2': '"Imekuwaje hata mama wa Bwana wangu aje kwangu?" (Luka 1:43)',
+      'mystery_joyful_scr_3': '"Akamzaa mwanawe, kifungua mimba, akamvika nguo za kitoto, akamlaza katika hori ya kulia ng\'ombe..." (Luka 2:7)',
+      'mystery_joyful_scr_4': '"Kama ilivyoandikwa katika sheria ya Bwana: Kila mtoto wa kiume aliyefungua tumbo la mama yake aitwe mtakatifu kwa Bwana." (Luka 2:23)',
+      'mystery_joyful_scr_5': '"Ikawa baada ya siku tatu wakampata hekaluni, ameketi katikati ya walimu..." (Luka 2:46)',
+
+      'mystery_sorrowful_title': 'Masumbuko ya Huzuni',
+      'mystery_sorrowful_desc': 'Hutafakariwa Jumanne na Ijumaa, yakilenga mateso na kifo cha Yesu Kristo.',
+      'mystery_sorrowful_dec_1': 'Yesu kufanya toba bustanini Gethsemane',
+      'mystery_sorrowful_dec_2': 'Yesu kupigwa mijeledi kwenye nguzo',
+      'mystery_sorrowful_dec_3': 'Yesu kuvikwa taji ya miiba',
+      'mystery_sorrowful_dec_4': 'Yesu kubeba Msalaba kwenda Kalivari',
+      'mystery_sorrowful_dec_5': 'Yesu kusulibiwa na kufa Msalabani',
+      'mystery_sorrowful_scr_1': '"Naye kwa vile alivyokuwa katika dhiki, akazidi kuomba kwa bidii." (Luka 22:43)',
+      'mystery_sorrowful_scr_2': '"Basi ndipo Pilato alipomtwaa Yesu, akampiga mijeledi." (Yohana 19:1)',
+      'mystery_sorrowful_scr_3': '"Wakasokota taji ya miiba, wakaiweka juu ya kichwa chake..." (Mathayo 27:29)',
+      'mystery_sorrowful_scr_4': '"Akatoka, huku akijichukulia msalaba wake mwenyewe, hadi mahali paitwavyo Fuvu la Kichwa, kwa Kiebrania Golgotha..." (Yohana 19:17)',
+      'mystery_sorrowful_scr_5': '"Yesu akapiga kelele kwa sauti kuu, akasema, Baba, mikononi mwako naiweka roho yangu." (Luka 23:46)',
+
+      'mystery_glorious_title': 'Masumbuko ya Utukufu',
+      'mystery_glorious_desc': 'Hutafakariwa Jumatano na Jumapili, yakilenga Ufufuko, Kupaa mbinguni, na utukufu wa Mbinguni.',
+      'mystery_glorious_dec_1': 'Yesu kufufuka katika wafu',
+      'mystery_glorious_dec_2': 'Yesu kupaa mbinguni',
+      'mystery_glorious_dec_3': 'Roho Mtakatifu kuwashukia Mitume',
+      'mystery_glorious_dec_4': 'Bikira Maria kupalizwa mbinguni',
+      'mystery_glorious_dec_5': 'Bikira Maria kuvikwa taji mbinguni',
+      'mystery_glorious_scr_1': '"Hayupo hapa; kwani amefufuka, kama alivyosema." (Mathayo 28:6)',
+      'mystery_glorious_scr_2': '"Ikawa katika kuwabariki, alijitenga nao, akachukuliwa juu mbinguni." (Luka 24:51)',
+      'mystery_glorious_scr_3': '"Wote wakajazwa na Roho Mtakatifu, wakaanza kunena kwa lugha nyingine..." (Matendo ya Mitume 2:4)',
+      'mystery_glorious_scr_4': '"Na ishara kuu ilionekana mbinguni: mwanamke aliyevikwa jua, na mwezi chini ya miguu yake..." (Ufunuo 12:1)',
+      'mystery_glorious_scr_5': '"Na juu ya kichwa chake taji ya nyota kumi na mbili." (Ufunuo 12:1)',
+
+      'mystery_luminous_title': 'Masumbuko ya Mwanga',
+      'mystery_luminous_desc': 'Hutafakariwa Alhamisi, yakilenga huduma ya hadharani na mafunuo ya Kristo.',
+      'mystery_luminous_dec_1': 'Yesu kubatizwa mtoni Yordani',
+      'mystery_luminous_dec_2': 'Yesu kujifunua kwenye arusi ya Kana',
+      'mystery_luminous_dec_3': 'Yesu kutangaza Ufalme wa Mungu',
+      'mystery_luminous_dec_4': 'Yesu kugeuka sura mlimani',
+      'mystery_luminous_dec_5': 'Yesu kuweka Sakramenti ya Ekaristi Takatifu',
+      'mystery_luminous_scr_1': '"Na sauti kutoka mbinguni ikasema: Huyu ni Mwanangu, mpendwa wangu, ninayependezwa naye." (Mathayo 3:17)',
+      'mystery_luminous_scr_2': '"Mwanzo huo wa ishara Yesu aliufanya huko Kana ya Galilaya; akaudhihirisha utukufu wake..." (Yohana 2:11)',
+      'mystery_luminous_scr_3': '"Yesu alikuja Galilaya, akihubiri habari njema ya ufalme wa Mungu, akisema, Wakati umetimia..." (Marko 1:14-15)',
+      'mystery_luminous_scr_4': '"Akageuka sura mbele yao; uso wake ukang\'aa kama jua..." (Mathayo 17:2)',
+      'mystery_luminous_scr_5': '"Akatwaa mkate, akashukuru, akaumega, akawapa, akisema, Huu ndio mwili wangu..." (Luka 22:19)',
+
+      // Journal Screen
+      'journal_title': 'SHAJARA YA SALA',
+      'journal_active': 'NIA ZINAZOENDELEA',
+      'journal_answered': 'SALA ZILIZOJIBIWA',
+      'journal_new_intention': 'Nia Mpya',
+      'journal_add_btn': 'Weka Nia ya Sala',
+      'journal_enter_title': 'Andika kichwa cha nia...',
+      'journal_enter_desc': 'Andika maelezo ya sala/nia...',
+      'journal_save': 'Hifadhi',
+      'journal_cancel': 'Ghairi',
+      'journal_set_reminder': 'Panga Kikumbusho cha Kila Siku',
+      'journal_reminder_enabled': 'Kikumbusho kimewekwa saa ',
+      'journal_reminder_disabled': 'Kikumbusho kimezimwa',
+
+      // Profile Screen
+      'profile_title': 'NAFASI YANGU',
+      'profile_settings': 'Mipangilio',
+      'profile_lang': 'Lugha / Language',
+      'profile_font_size': 'Ukubwa wa Maandiko',
+      'profile_haptic': 'Mtetemo (Haptic)',
+      'profile_quiet_hours': 'Saa za Utulivu',
+      'profile_highlights': 'MISTARI ILIYOWEKWA ALAMA',
+      'profile_no_highlights': 'Hakuna mistari iliyowekwa alama bado.',
+      'profile_saved': 'Mipangilio imehifadhiwa vizuri',
+    }
+  };
+}

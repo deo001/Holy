@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/services/notification_service.dart';
 import 'core/theme/app_theme.dart';
+import 'core/localization/app_localizations.dart';
 import 'features/dashboard/presentation/dashboard_screen.dart';
 import 'features/bible/presentation/bible_screen.dart';
 import 'features/rosary/presentation/rosary_screen.dart';
@@ -14,7 +15,6 @@ void main() async {
   // Initialize Notification Service on boot
   final notificationService = NotificationService.instance;
   await notificationService.init();
-  await notificationService.requestPermissions();
 
   runApp(
     const ProviderScope(
@@ -37,14 +37,14 @@ class LetsPrayApp extends StatelessWidget {
   }
 }
 
-class MainNavigationShell extends StatefulWidget {
+class MainNavigationShell extends ConsumerStatefulWidget {
   const MainNavigationShell({super.key});
 
   @override
-  State<MainNavigationShell> createState() => _MainNavigationShellState();
+  ConsumerState<MainNavigationShell> createState() => _MainNavigationShellState();
 }
 
-class _MainNavigationShellState extends State<MainNavigationShell> {
+class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
   int _currentIndex = 0;
 
   late final List<Widget> _screens;
@@ -79,31 +79,31 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
             _currentIndex = index;
           });
         },
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
+            icon: const Icon(Icons.home_outlined),
+            activeIcon: const Icon(Icons.home),
+            label: AppStrings.of(ref, 'tab_home'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.menu_book_outlined),
-            activeIcon: Icon(Icons.menu_book),
-            label: 'Bible',
+            icon: const Icon(Icons.menu_book_outlined),
+            activeIcon: const Icon(Icons.menu_book),
+            label: AppStrings.of(ref, 'tab_bible'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.circle_outlined),
-            activeIcon: Icon(Icons.circle),
-            label: 'Rosary',
+            icon: const Icon(Icons.circle_outlined),
+            activeIcon: const Icon(Icons.circle),
+            label: AppStrings.of(ref, 'tab_rosary'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_border),
-            activeIcon: Icon(Icons.favorite),
-            label: 'Journal',
+            icon: const Icon(Icons.favorite_border),
+            activeIcon: const Icon(Icons.favorite),
+            label: AppStrings.of(ref, 'tab_journal'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle_outlined),
-            activeIcon: Icon(Icons.account_circle),
-            label: 'Space',
+            icon: const Icon(Icons.account_circle_outlined),
+            activeIcon: const Icon(Icons.account_circle),
+            label: AppStrings.of(ref, 'tab_space'),
           ),
         ],
       ),

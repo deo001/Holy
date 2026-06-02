@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database_helper.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/localization/app_localizations.dart';
 
-class JournalScreen extends StatefulWidget {
+class JournalScreen extends ConsumerStatefulWidget {
   const JournalScreen({super.key});
 
   @override
-  State<JournalScreen> createState() => _JournalScreenState();
+  ConsumerState<JournalScreen> createState() => _JournalScreenState();
 }
 
-class _JournalScreenState extends State<JournalScreen> {
+class _JournalScreenState extends ConsumerState<JournalScreen> {
   List<Map<String, dynamic>> _intentions = [];
   bool _isLoading = true;
 
@@ -23,10 +25,12 @@ class _JournalScreenState extends State<JournalScreen> {
 
   Future<void> _loadIntentions() async {
     final list = await DatabaseHelper.instance.getIntentions();
-    setState(() {
-      _intentions = list;
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _intentions = list;
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _toggleAnswered(int id, int currentVal, String title) async {
@@ -36,9 +40,14 @@ class _JournalScreenState extends State<JournalScreen> {
     _loadIntentions();
 
     if (nextVal == 1 && mounted) {
+      final locale = ref.read(localeProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Praise God! "$title" marked as answered.'),
+          content: Text(
+            locale == 'sw'
+                ? 'Mshukuru Mungu! "$title" imewekwa alama kama imejibiwa.'
+                : 'Praise God! "$title" marked as answered.',
+          ),
           backgroundColor: AppTheme.liturgicalGreen,
         ),
       );
@@ -52,8 +61,13 @@ class _JournalScreenState extends State<JournalScreen> {
     HapticFeedback.lightImpact();
     _loadIntentions();
     if (mounted) {
+      final locale = ref.read(localeProvider);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Intention deleted')),
+        SnackBar(
+          content: Text(
+            locale == 'sw' ? 'Nia imefutwa' : 'Intention deleted',
+          ),
+        ),
       );
     }
   }
@@ -62,6 +76,7 @@ class _JournalScreenState extends State<JournalScreen> {
     final titleController = TextEditingController();
     final descController = TextEditingController();
     TimeOfDay? selectedTime;
+    final locale = ref.read(localeProvider);
 
     showDialog(
       context: context,
@@ -71,7 +86,7 @@ class _JournalScreenState extends State<JournalScreen> {
             return AlertDialog(
               backgroundColor: AppTheme.surfaceDark,
               title: Text(
-                'Add Prayer Intention',
+                locale == 'sw' ? 'Weka Nia ya Sala' : 'Add Prayer Intention',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               content: Column(
@@ -79,11 +94,11 @@ class _JournalScreenState extends State<JournalScreen> {
                 children: [
                   TextField(
                     controller: titleController,
-                    decoration: const InputDecoration(
-                      labelText: 'What are you praying for?',
-                      labelStyle: TextStyle(color: AppTheme.textSecondary),
-                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surfaceLightDark)),
-                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.liturgicalGold)),
+                    decoration: InputDecoration(
+                      labelText: locale == 'sw' ? 'Je, unazisalia nini?' : 'What are you praying for?',
+                      labelStyle: const TextStyle(color: AppTheme.textSecondary),
+                      enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surfaceLightDark)),
+                      focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.liturgicalGold)),
                     ),
                     style: const TextStyle(color: AppTheme.textPrimary),
                   ),
@@ -91,11 +106,11 @@ class _JournalScreenState extends State<JournalScreen> {
                   TextField(
                     controller: descController,
                     maxLines: 2,
-                    decoration: const InputDecoration(
-                      labelText: 'Notes / Details (Optional)',
-                      labelStyle: TextStyle(color: AppTheme.textSecondary),
-                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surfaceLightDark)),
-                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.liturgicalGold)),
+                    decoration: InputDecoration(
+                      labelText: locale == 'sw' ? 'Maelezo / Nyongeza (Hiari)' : 'Notes / Details (Optional)',
+                      labelStyle: const TextStyle(color: AppTheme.textSecondary),
+                      enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surfaceLightDark)),
+                      focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.liturgicalGold)),
                     ),
                     style: const TextStyle(color: AppTheme.textPrimary),
                   ),
@@ -107,8 +122,8 @@ class _JournalScreenState extends State<JournalScreen> {
                     children: [
                       Text(
                         selectedTime == null
-                            ? 'Set daily reminder?'
-                            : 'Reminder: ${selectedTime!.format(context)}',
+                            ? (locale == 'sw' ? 'Weka kikumbusho?' : 'Set daily reminder?')
+                            : '${locale == 'sw' ? 'Kikumbusho' : 'Reminder'}: ${selectedTime!.format(context)}',
                         style: const TextStyle(color: AppTheme.textSecondary),
                       ),
                       IconButton(
@@ -132,7 +147,10 @@ class _JournalScreenState extends State<JournalScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('CANCEL', style: TextStyle(color: AppTheme.textSecondary)),
+                  child: Text(
+                    locale == 'sw' ? 'GHAIRI' : 'CANCEL',
+                    style: const TextStyle(color: AppTheme.textSecondary),
+                  ),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -160,8 +178,8 @@ class _JournalScreenState extends State<JournalScreen> {
                       await NotificationService.instance.requestPermissions();
                       await NotificationService.instance.scheduleDailyNotification(
                         id: dbId,
-                        title: 'Daily Prayer Intention Reminder',
-                        body: 'Remember to pray for: $title',
+                        title: locale == 'sw' ? 'Kikumbusho cha Nia ya Sala' : 'Daily Prayer Intention Reminder',
+                        body: locale == 'sw' ? 'Kumbuka kusali kwa ajili ya: $title' : 'Remember to pray for: $title',
                         hour: selectedTime!.hour,
                         minute: selectedTime!.minute,
                       );
@@ -173,7 +191,7 @@ class _JournalScreenState extends State<JournalScreen> {
                       _loadIntentions();
                     }
                   },
-                  child: const Text('SAVE'),
+                  child: Text(locale == 'sw' ? 'HIFADHI' : 'SAVE'),
                 ),
               ],
             );
@@ -185,9 +203,11 @@ class _JournalScreenState extends State<JournalScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final locale = ref.watch(localeProvider);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('PRAYER JOURNAL'),
+        title: Text(AppStrings.of(ref, 'journal_title')),
         actions: [
           IconButton(
             icon: const Icon(Icons.alarm_off, color: AppTheme.textSecondary),
@@ -195,11 +215,15 @@ class _JournalScreenState extends State<JournalScreen> {
               await NotificationService.instance.cancelAllNotifications();
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('All reminders disabled')),
+                  SnackBar(
+                    content: Text(
+                      locale == 'sw' ? 'Vikumbusho vyote vimezimwa' : 'All reminders disabled',
+                    ),
+                  ),
                 );
               }
             },
-            tooltip: 'Disable all reminders',
+            tooltip: locale == 'sw' ? 'Zima vikumbusho vyote' : 'Disable all reminders',
           ),
         ],
       ),
@@ -215,13 +239,15 @@ class _JournalScreenState extends State<JournalScreen> {
                         const Icon(Icons.favorite_border, size: 64, color: AppTheme.textMuted),
                         const SizedBox(height: 16),
                         Text(
-                          'Your prayer journal is empty.',
+                          locale == 'sw' ? 'Shajara yako ya sala haina kitu.' : 'Your prayer journal is empty.',
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppTheme.textSecondary),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          'Add intentions you want to offer in prayer. You can schedule daily local alerts to help build your discipline.',
-                          style: TextStyle(color: AppTheme.textMuted),
+                        Text(
+                          locale == 'sw'
+                              ? 'Weka nia unazotaka kuomba. Unaweza kupanga vikumbusho vya kila siku ili kukusaidia kujenga nidhamu.'
+                              : 'Add intentions you want to offer in prayer. You can schedule daily local alerts to help build your discipline.',
+                          style: const TextStyle(color: AppTheme.textMuted),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -285,12 +311,14 @@ class _JournalScreenState extends State<JournalScreen> {
                               const SizedBox(height: 6),
                               Row(
                                 children: [
-                                  const Icon(Icons.alarm, color: AppTheme.liturgicalGold, size: 14),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'Daily at $reminder',
-                                    style: const TextStyle(color: AppTheme.liturgicalGold, fontSize: 11, fontWeight: FontWeight.w600),
-                                  ),
+                                    const Icon(Icons.alarm, color: AppTheme.liturgicalGold, size: 14),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      locale == 'sw'
+                                          ? 'Kila siku saa $reminder'
+                                          : 'Daily at $reminder',
+                                      style: const TextStyle(color: AppTheme.liturgicalGold, fontSize: 11, fontWeight: FontWeight.w600),
+                                    ),
                                 ],
                               ),
                             ],

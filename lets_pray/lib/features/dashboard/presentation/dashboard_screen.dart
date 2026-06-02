@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../rosary/presentation/rosary_notifier.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -11,12 +12,13 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final rosaryState = ref.watch(rosaryProvider);
+    final locale = ref.watch(localeProvider);
 
-    // Calculate liturgical variables based on current date
-    final String season = _getLiturgicalSeason();
+    // Calculate liturgical variables based on current date and locale
+    final String season = _getLiturgicalSeason(locale);
     final Color seasonColor = _getLiturgicalSeasonColor(season);
-    final String saintName = _getSaintOfTheDay();
-    final String saintQuote = _getSaintQuote();
+    final String saintName = _getSaintOfTheDay(locale);
+    final String saintQuote = _getSaintQuote(locale);
 
     return Scaffold(
       appBar: AppBar(
@@ -26,7 +28,7 @@ class DashboardScreen extends ConsumerWidget {
             const Icon(Icons.church, color: AppTheme.liturgicalGold, size: 24),
             const SizedBox(width: 8),
             Text(
-              'LET\'S PRAY',
+              AppStrings.of(ref, 'dashboard_title'),
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.5,
@@ -61,7 +63,7 @@ class DashboardScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _getFormattedDate(),
+                      _getFormattedDate(locale),
                       style: const TextStyle(
                         color: Colors.white70,
                         fontSize: 12,
@@ -79,9 +81,11 @@ class DashboardScreen extends ConsumerWidget {
                           ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'Let us elevate our hearts in quiet contemplation and study today.',
-                      style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.3),
+                    Text(
+                      locale == 'sw'
+                          ? 'Tukiinue mioyo yetu katika tafakari ya kimya na masomo leo.'
+                          : 'Let us elevate our hearts in quiet contemplation and study today.',
+                      style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.3),
                     ),
                   ],
                 ),
@@ -90,7 +94,7 @@ class DashboardScreen extends ConsumerWidget {
 
               // 2. Saint of the Day Section
               Text(
-                'SAINT OF THE DAY',
+                AppStrings.of(ref, 'dashboard_saint').toUpperCase(),
                 style: Theme.of(context).textTheme.labelLarge,
               ),
               const SizedBox(height: 12),
@@ -132,7 +136,7 @@ class DashboardScreen extends ConsumerWidget {
 
               // 3. Quick Action Devotionals Grid
               Text(
-                'QUICK DEVOTIONALS',
+                locale == 'sw' ? 'DEVOSHONALI ZA HARAKA' : 'QUICK DEVOTIONALS',
                 style: Theme.of(context).textTheme.labelLarge,
               ),
               const SizedBox(height: 12),
@@ -165,7 +169,7 @@ class DashboardScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Pray the Holy Rosary',
+                                AppStrings.of(ref, 'card_rosary_title'),
                                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -173,7 +177,9 @@ class DashboardScreen extends ConsumerWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Today: Meditate on the ${rosaryState.activeMysteryKey} Mysteries',
+                                locale == 'sw'
+                                    ? 'Leo: Tafakari juu ya Masumbuko ya ${_getMysteryNameSw(rosaryState.activeMysteryKey)}'
+                                    : 'Today: Meditate on the ${rosaryState.activeMysteryKey} Mysteries',
                                 style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
                               ),
                             ],
@@ -215,16 +221,18 @@ class DashboardScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Catholic Bible Study',
+                                AppStrings.of(ref, 'card_bible_title'),
                                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                     ),
                               ),
                               const SizedBox(height: 4),
-                              const Text(
-                                'Read OT, NT, and Deuterocanonical Books',
-                                style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                              Text(
+                                locale == 'sw'
+                                    ? 'Soma Agano la Kale, Jipya, na Vitabu vya Deuterokanononi'
+                                    : 'Read OT, NT, and Deuterocanonical Books',
+                                style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
                               ),
                             ],
                           ),
@@ -244,28 +252,31 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   // Liturgical helper methods
-  String _getLiturgicalSeason() {
+  String _getLiturgicalSeason(String locale) {
     // Basic approximation of liturgical seasons
     final month = DateTime.now().month;
-    if (month == 12) return 'Season of Advent / Christmas';
-    if (month == 3 || month == 4) return 'Season of Lent / Easter';
-    return 'Ordinary Time';
+    if (month == 12) {
+      return locale == 'sw' ? 'Msimu wa Ujio / Krismasi' : 'Season of Advent / Christmas';
+    }
+    if (month == 3 || month == 4) {
+      return locale == 'sw' ? 'Msimu wa Kwaresma / Pasaka' : 'Season of Lent / Easter';
+    }
+    return locale == 'sw' ? 'Kipindi cha Kawaida' : 'Ordinary Time';
   }
 
   Color _getLiturgicalSeasonColor(String season) {
-    if (season.contains('Advent') || season.contains('Lent')) {
+    if (season.contains('Advent') || season.contains('Ujio') || season.contains('Lent') || season.contains('Kwaresma')) {
       return AppTheme.liturgicalViolet;
     }
-    if (season.contains('Christmas') || season.contains('Easter')) {
+    if (season.contains('Christmas') || season.contains('Krismasi') || season.contains('Easter') || season.contains('Pasaka')) {
       return AppTheme.liturgicalGold;
     }
     return AppTheme.liturgicalGreen;
   }
 
-  String _getSaintOfTheDay() {
+  String _getSaintOfTheDay(String locale) {
     final day = DateTime.now().day;
-    // Rotate through some key Catholic Saints based on calendar day
-    final saints = [
+    final saintsEn = [
       'St. Augustine of Hippo',
       'St. Therese of Lisieux',
       'St. Francis of Assisi',
@@ -274,12 +285,21 @@ class DashboardScreen extends ConsumerWidget {
       'St. Ignatius of Loyola',
       'St. Teresa of Avila'
     ];
-    return saints[day % saints.length];
+    final saintsSw = [
+      'Mtakatifu Agostina wa Hippo',
+      'Mtakatifu Teresa wa Lisieux',
+      'Mtakatifu Fransisko wa Asizi',
+      'Mtakatifu Tomaso wa Akwino',
+      'Mtakatifu Padre Pio',
+      'Mtakatifu Inyasi wa Loyola',
+      'Mtakatifu Teresa wa Avila'
+    ];
+    return locale == 'sw' ? saintsSw[day % saintsSw.length] : saintsEn[day % saintsEn.length];
   }
 
-  String _getSaintQuote() {
+  String _getSaintQuote(String locale) {
     final day = DateTime.now().day;
-    final quotes = [
+    final quotesEn = [
       '"Thou hast made us for Thyself, O Lord, and our hearts are restless until they rest in Thee."',
       '"Without love, deeds, even the most brilliant, count as nothing."',
       '"Start by doing what\'s necessary; then do what\'s possible; and suddenly you are doing the impossible."',
@@ -288,13 +308,43 @@ class DashboardScreen extends ConsumerWidget {
       '"He who is not key to our hearts, does not know the way of our soul."',
       '"Let nothing disturb thee, nothing affright thee; all things are passing; God never changeth."'
     ];
-    return quotes[day % quotes.length];
+    final quotesSw = [
+      '"Ulimtengeneza kwa ajili yako mwenyewe, Ee Bwana, na mioyo yetu haina utulivu mpaka ipumzike ndani yako."',
+      '"Bila upendo, matendo, hata yale ya kupendeza zaidi, si kitu."',
+      '"Anza kwa kufanya kile kinachohitajika; kisha fanya kile kinachowezekana; na ghafla unafanya yasiyowezekana."',
+      '"Kwa mtu mwenye imani, hakuna ufafanuzi unaohitajika. Kwa mtu asiye na imani, hakuna ufafanuzi unaowezekana."',
+      '"Sali, tumaini, na usiwe na wasiwasi. Wasiwasi haufai kitu. Mungu ni mwenye rehema na atasikia sala yako."',
+      '"Yeye asiye ufunguo wa mioyo yetu, hajui njia ya roho zetu."',
+      '"Usisumbuke na chochote, usiogope chochote; mambo yote yanapita; Mungu habadiliki kamwe."'
+    ];
+    return locale == 'sw' ? quotesSw[day % quotesSw.length] : quotesEn[day % quotesEn.length];
   }
 
-  String _getFormattedDate() {
+  String _getFormattedDate(String locale) {
     final date = DateTime.now();
-    final weekdayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return '${weekdayNames[date.weekday - 1].toUpperCase()}, ${monthNames[date.month - 1].toUpperCase()} ${date.day}';
+    final weekdayNamesEn = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    final weekdayNamesSw = ['Jumatatu', 'Jumanne', 'Jumatano', 'Alhamisi', 'Ijumaa', 'Jumamosi', 'Jumapili'];
+    final monthNamesEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final monthNamesSw = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun', 'Jul', 'Ago', 'Sep', 'Okt', 'Nov', 'Des'];
+
+    final weekday = locale == 'sw' ? weekdayNamesSw[date.weekday - 1] : weekdayNamesEn[date.weekday - 1];
+    final month = locale == 'sw' ? monthNamesSw[date.month - 1] : monthNamesEn[date.month - 1];
+
+    return '${weekday.toUpperCase()}, ${month.toUpperCase()} ${date.day}';
+  }
+
+  String _getMysteryNameSw(String englishMystery) {
+    switch (englishMystery) {
+      case 'Joyful':
+        return 'Furaha';
+      case 'Sorrowful':
+        return 'Huzuni';
+      case 'Glorious':
+        return 'Utukufu';
+      case 'Luminous':
+        return 'Mwanga';
+      default:
+        return englishMystery;
+    }
   }
 }

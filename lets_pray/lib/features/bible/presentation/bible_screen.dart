@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database_helper.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/localization/app_localizations.dart';
 
-class BibleScreen extends StatefulWidget {
+class BibleScreen extends ConsumerStatefulWidget {
   const BibleScreen({super.key});
 
   @override
-  State<BibleScreen> createState() => _BibleScreenState();
+  ConsumerState<BibleScreen> createState() => _BibleScreenState();
 }
 
-class _BibleScreenState extends State<BibleScreen> with SingleTickerProviderStateMixin {
+class _BibleScreenState extends ConsumerState<BibleScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<Map<String, dynamic>> _allBooks = [];
   bool _isLoading = true;
@@ -21,11 +23,13 @@ class _BibleScreenState extends State<BibleScreen> with SingleTickerProviderStat
   int _selectedChapter = 1;
   List<Map<String, dynamic>> _currentVerses = [];
   double _fontSize = 18.0;
+  String _selectedTranslation = 'DR';
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _selectedTranslation = ref.read(localeProvider) == 'sw' ? 'SUV' : 'DR';
     _loadBooks();
   }
 
@@ -53,6 +57,7 @@ class _BibleScreenState extends State<BibleScreen> with SingleTickerProviderStat
     final verses = await DatabaseHelper.instance.getVerses(
       _selectedBook!['id'] as int,
       _selectedChapter,
+      translation: _selectedTranslation,
     );
     setState(() {
       _currentVerses = verses;
@@ -94,7 +99,7 @@ class _BibleScreenState extends State<BibleScreen> with SingleTickerProviderStat
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Select Chapter',
+                AppStrings.of(ref, 'bible_select_chapter'),
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
@@ -159,7 +164,7 @@ class _BibleScreenState extends State<BibleScreen> with SingleTickerProviderStat
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Verse ${verse['verse']}',
+                '${ref.watch(localeProvider) == 'sw' ? 'Mstari' : 'Verse'} ${verse['verse']}',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -186,7 +191,7 @@ class _BibleScreenState extends State<BibleScreen> with SingleTickerProviderStat
                       HapticFeedback.lightImpact();
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Highlight cleared')),
+                        SnackBar(content: Text(AppStrings.of(ref, 'bible_highlight_cleared'))),
                       );
                     },
                   ),
@@ -208,7 +213,7 @@ class _BibleScreenState extends State<BibleScreen> with SingleTickerProviderStat
         if (mounted) {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Verse Highlighted')),
+            SnackBar(content: Text(AppStrings.of(ref, 'bible_highlighted'))),
           );
         }
       },
@@ -231,15 +236,15 @@ class _BibleScreenState extends State<BibleScreen> with SingleTickerProviderStat
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('HOLY BIBLE'),
+        title: Text(AppStrings.of(ref, 'bible_title')),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: TabBar(
             controller: _tabController,
-            tabs: const [
-              Tab(text: 'OLD TESTAMENT'),
-              Tab(text: 'NEW TESTAMENT'),
-              Tab(text: 'DEUTERO'),
+            tabs: [
+              Tab(text: AppStrings.of(ref, 'bible_ot')),
+              Tab(text: AppStrings.of(ref, 'bible_nt')),
+              Tab(text: AppStrings.of(ref, 'bible_deutero')),
             ],
             indicatorColor: AppTheme.liturgicalGold,
             labelColor: AppTheme.liturgicalGold,
@@ -262,6 +267,7 @@ class _BibleScreenState extends State<BibleScreen> with SingleTickerProviderStat
 
   Widget _buildBooksTab(String testament) {
     final books = _allBooks.where((b) => b['testament'] == testament).toList();
+    final activeLocale = ref.watch(localeProvider);
 
     return Row(
       children: [
@@ -276,13 +282,17 @@ class _BibleScreenState extends State<BibleScreen> with SingleTickerProviderStat
             itemBuilder: (context, index) {
               final book = books[index];
               final isSelected = _selectedBook != null && book['id'] == _selectedBook!['id'];
+              final String bookName = activeLocale == 'sw'
+                  ? DatabaseHelper.getSwahiliBookName(book['name'] as String)
+                  : book['name'] as String;
+
               return InkWell(
                 onTap: () => _selectBook(book),
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
                   color: isSelected ? AppTheme.surfaceLightDark.withOpacity(0.5) : Colors.transparent,
                   child: Text(
-                    book['name'],
+                    bookName,
                     style: TextStyle(
                       color: isSelected ? AppTheme.liturgicalGold : AppTheme.textSecondary,
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -298,7 +308,7 @@ class _BibleScreenState extends State<BibleScreen> with SingleTickerProviderStat
         // Right Column: Scripture Reader Pane
         Expanded(
           child: _selectedBook == null
-              ? const Center(child: Text('Select a book'))
+              ? Center(child: Text(AppStrings.of(ref, 'bible_select_book')))
               : Column(
                   children: [
                     // Reading Header Controls
@@ -320,7 +330,7 @@ class _BibleScreenState extends State<BibleScreen> with SingleTickerProviderStat
                               backgroundColor: AppTheme.surfaceLightDark,
                               side: BorderSide.none,
                               label: Text(
-                                'Chapter $_selectedChapter',
+                                '${activeLocale == 'sw' ? 'Sura' : 'Chapter'} $_selectedChapter',
                                 style: const TextStyle(
                                   color: AppTheme.liturgicalGold,
                                   fontWeight: FontWeight.bold,
@@ -339,40 +349,100 @@ class _BibleScreenState extends State<BibleScreen> with SingleTickerProviderStat
                       ),
                     ),
 
-                    // Font Sizing Row
+                    // Font Sizing Row & Translation Selector
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                       color: AppTheme.surfaceDark.withOpacity(0.5),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          IconButton(
-                            icon: const Icon(Icons.text_fields_outlined, size: 18, color: AppTheme.textSecondary),
-                            onPressed: () {
-                              setState(() {
-                                if (_fontSize > 12) _fontSize -= 2.0;
-                              });
-                            },
+                          // Translation Toggle
+                          Row(
+                            children: [
+                              Text(
+                                '${AppStrings.of(ref, 'bible_translation_label')}: ',
+                                style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                              ),
+                              const SizedBox(width: 4),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _selectedTranslation = _selectedTranslation == 'DR' ? 'SUV' : 'DR';
+                                  });
+                                  _loadVerses();
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.surfaceLightDark,
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(color: AppTheme.liturgicalGold.withOpacity(0.3)),
+                                  ),
+                                  child: Text(
+                                    _selectedTranslation,
+                                    style: const TextStyle(
+                                      color: AppTheme.liturgicalGold,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            icon: const Icon(Icons.text_fields, size: 24, color: AppTheme.textSecondary),
-                            onPressed: () {
-                              setState(() {
-                                if (_fontSize < 30) _fontSize += 2.0;
-                              });
-                            },
+                          // Font Sizing
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.text_fields_outlined, size: 18, color: AppTheme.textSecondary),
+                                onPressed: () {
+                                  setState(() {
+                                    if (_fontSize > 12) _fontSize -= 2.0;
+                                  });
+                                },
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                icon: const Icon(Icons.text_fields, size: 24, color: AppTheme.textSecondary),
+                                onPressed: () {
+                                  setState(() {
+                                    if (_fontSize < 30) _fontSize += 2.0;
+                                  });
+                                },
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ),
+
+                    // Fallback Notice Banner
+                    if (_selectedTranslation == 'SUV' &&
+                        _currentVerses.isNotEmpty &&
+                        _currentVerses.first['translation'] == 'DR')
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        color: AppTheme.liturgicalRed.withOpacity(0.15),
+                        child: Text(
+                          AppStrings.of(ref, 'bible_fallback_notice'),
+                          style: const TextStyle(
+                            color: AppTheme.liturgicalRed,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
 
                     // Verses Scrollable List
                     Expanded(
                       child: _currentVerses.isEmpty
                           ? Center(
                               child: Text(
-                                'Scriptures for chapter $_selectedChapter are currently unseeded. Use Psalms 23 or John 3 to test.',
+                                activeLocale == 'sw'
+                                    ? 'Maandiko ya sura $_selectedChapter bado hayajawekwa. Tafadhali tumia Zaburi 23 au Yohana 3 kujaribu.'
+                                    : 'Scriptures for chapter $_selectedChapter are currently unseeded. Use Psalms 23 or John 3 to test.',
                                 style: const TextStyle(color: AppTheme.textMuted),
                                 textAlign: TextAlign.center,
                               ),
@@ -406,7 +476,7 @@ class _BibleScreenState extends State<BibleScreen> with SingleTickerProviderStat
                                           ),
                                           TextSpan(
                                             text: verseText,
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               color: AppTheme.textPrimary,
                                               fontFamily: 'Lora',
                                             ),

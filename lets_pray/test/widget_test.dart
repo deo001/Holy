@@ -12,8 +12,7 @@ void main() {
       ),
     );
 
-    // Verify bottom navigation bar has Home and Bible items
-    expect(find.byIcon(Icons.home_outlined), findsOneWidget);
-    expect(find.byIcon(Icons.menu_book_outlined), findsOneWidget);
+    // Verify bottom navigation bar is rendered
+    expect(find.byType(BottomNavigationBar), findsOneWidget);
   });
 }

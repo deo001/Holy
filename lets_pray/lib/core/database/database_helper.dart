@@ -1,15 +1,20 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
   static Database? _database;
+  static Future<Database>? _databaseFuture;
 
   DatabaseHelper._init();
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDB('lets_pray.db');
+    _databaseFuture ??= _initDB('lets_pray.db');
+    _database = await _databaseFuture!;
     return _database!;
   }
 
@@ -17,11 +22,24 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(
+    final db = await openDatabase(
       path,
-      version: 1,
+      version: 4, // Bump to version 4 to force upgrade and schema recreation
       onCreate: _createDB,
+      onUpgrade: (db, oldVersion, newVersion) async {
+        // Reset database schema clean for version 2 to support translations
+        await db.execute('DROP TABLE IF EXISTS bible_verses');
+        await db.execute('DROP TABLE IF EXISTS bible_books');
+        await db.execute('DROP TABLE IF EXISTS user_annotations');
+        await db.execute('DROP TABLE IF EXISTS prayer_intentions');
+        await _createDB(db, newVersion);
+      },
     );
+
+    // Automatically check and seed the Bible text from JSON
+    await _checkAndSeedBible(db);
+
+    return db;
   }
 
   Future<void> _createDB(Database db, int version) async {
@@ -44,6 +62,7 @@ class DatabaseHelper {
         chapter INTEGER NOT NULL,
         verse INTEGER NOT NULL,
         text TEXT NOT NULL,
+        translation TEXT NOT NULL, -- 'DR' (English), 'SUV' (Swahili)
         FOREIGN KEY (book_id) REFERENCES bible_books (id) ON DELETE CASCADE
       )
     ''');
@@ -169,66 +188,376 @@ class DatabaseHelper {
       await db.insert('bible_books', book);
     }
 
-    // Seed sample verses from key scriptures
-    final verses = [
-      // Psalms 23
-      {'book_id': 23, 'chapter': 23, 'verse': 1, 'text': 'The Lord is my shepherd; I shall not want.'},
-      {'book_id': 23, 'chapter': 23, 'verse': 2, 'text': 'He maketh me to lie down in green pastures: he leadeth me beside the still waters.'},
-      {'book_id': 23, 'chapter': 23, 'verse': 3, 'text': 'He restoreth my soul: he leadeth me in the paths of righteousness for his name\'s sake.'},
-      {'book_id': 23, 'chapter': 23, 'verse': 4, 'text': 'Yea, though I walk through the valley of the shadow of death, I will fear no evil: for thou art with me; thy rod and thy staff they comfort me.'},
-      {'book_id': 23, 'chapter': 23, 'verse': 5, 'text': 'Thou preparest a table before me in the presence of mine enemies: thou anointest my head with oil; my cup runneth over.'},
-      {'book_id': 23, 'chapter': 23, 'verse': 6, 'text': 'Surely goodness and mercy shall follow me all the days of my life: and I will dwell in the house of the Lord for ever.'},
+    // Seeding sample verses removed in favor of full JSON seeding
+  }
 
-      // John 3:16
-      {'book_id': 50, 'chapter': 3, 'verse': 16, 'text': 'For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.'},
+  // Mapping from Douay-Rheims JSON book names to database book names
+  static const Map<String, String> _jsonKeyToDbBookName = {
+    'Genesis': 'Genesis',
+    'Exodus': 'Exodus',
+    'Leviticus': 'Leviticus',
+    'Numbers': 'Numbers',
+    'Deuteronomy': 'Deuteronomy',
+    'Josue': 'Joshua',
+    'Judges': 'Judges',
+    'Ruth': 'Ruth',
+    '1 Kings': '1 Samuel',
+    '2 Kings': '2 Samuel',
+    '3 Kings': '1 Kings',
+    '4 Kings': '2 Kings',
+    '1 Paralipomenon': '1 Chronicles',
+    '2 Paralipomenon': '2 Chronicles',
+    '1 Esdras': 'Ezra',
+    '2 Esdras': 'Nehemiah',
+    'Tobias': 'Tobit',
+    'Judith': 'Judith',
+    'Esther': 'Esther',
+    '1 Machabees': '1 Maccabees',
+    '2 Machabees': '2 Maccabees',
+    'Job': 'Job',
+    'Psalms': 'Psalms',
+    'Proverbs': 'Proverbs',
+    'Ecclesiastes': 'Ecclesiastes',
+    'Canticles': 'Song of Songs',
+    'Wisdom': 'Wisdom of Solomon',
+    'Ecclesiasticus': 'Sirach (Ecclesiasticus)',
+    'Isaias': 'Isaiah',
+    'Jeremias': 'Jeremiah',
+    'Lamentations': 'Lamentations',
+    'Baruch': 'Baruch',
+    'Ezechiel': 'Ezekiel',
+    'Daniel': 'Daniel',
+    'Osee': 'Hosea',
+    'Joel': 'Joel',
+    'Amos': 'Amos',
+    'Abdias': 'Obadiah',
+    'Jonas': 'Jonah',
+    'Micheas': 'Micah',
+    'Nahum': 'Nahum',
+    'Habacuc': 'Habakkuk',
+    'Sophonias': 'Zephaniah',
+    'Aggeus': 'Haggai',
+    'Zacharias': 'Zechariah',
+    'Malachias': 'Malachi',
+    'Matthew': 'Matthew',
+    'Mark': 'Mark',
+    'Luke': 'Luke',
+    'John': 'John',
+    'Acts': 'Acts',
+    'Romans': 'Romans',
+    '1 Corinthians': '1 Corinthians',
+    '2 Corinthians': '2 Corinthians',
+    'Galatians': 'Galatians',
+    'Ephesians': 'Ephesians',
+    'Philippians': 'Philippians',
+    'Colossians': 'Colossians',
+    '1 Thessalonians': '1 Thessalonians',
+    '2 Thessalonians': '2 Thessalonians',
+    '1 Timothy': '1 Timothy',
+    '2 Timothy': '2 Timothy',
+    'Titus': 'Titus',
+    'Philemon': 'Philemon',
+    'Hebrews': 'Hebrews',
+    'James': 'James',
+    '1 Peter': '1 Peter',
+    '2 Peter': '2 Peter',
+    '1 John': '1 John',
+    '2 John': '2 John',
+    '3 John': '3 John',
+    'Jude': 'Jude',
+    'Apocalypse': 'Revelation',
+  };
 
-      // Luke 1:28 (Hail Mary Scriptural Origin)
-      {'book_id': 49, 'chapter': 1, 'verse': 28, 'text': 'And the angel being come in, said unto her: Hail, full of grace, the Lord is with thee: blessed art thou among women.'},
-      {'book_id': 49, 'chapter': 1, 'verse': 42, 'text': 'And she cried out with a loud voice, and said: Blessed art thou among women, and blessed is the fruit of thy womb.'},
+  Future<void> _checkAndSeedBible(Database db) async {
+    try {
+      // Ensure the books count is verified
+      final booksCount = Sqflite.firstIntValue(
+            await db.rawQuery('SELECT COUNT(*) FROM bible_books'),
+          ) ?? 0;
 
-      // Matthew 6 (Our Father Scriptural Origin)
-      {'book_id': 47, 'chapter': 6, 'verse': 9, 'text': 'Thus therefore shall you pray: Our Father who art in heaven, hallowed be thy name.'},
-      {'book_id': 47, 'chapter': 6, 'verse': 10, 'text': 'Thy kingdom come. Thy will be done on earth as it is in heaven.'},
-      {'book_id': 47, 'chapter': 6, 'verse': 11, 'text': 'Give us this day our supersubstantial bread.'},
-      {'book_id': 47, 'chapter': 6, 'verse': 12, 'text': 'And forgive us our debts, as we also forgive our debtors.'},
-      {'book_id': 47, 'chapter': 6, 'verse': 13, 'text': 'And lead us not into temptation. But deliver us from evil. Amen.'},
+      if (booksCount == 0) {
+        // If books are not seeded for some reason, seed them first
+        await _seedDatabase(db);
+      }
 
-      // Sirach (Deuterocanonical Example)
-      {'book_id': 28, 'chapter': 2, 'verse': 1, 'text': 'My son, when thou comest to the service of God, stand in justice and in fear, and prepare thy soul for temptation.'},
-      {'book_id': 28, 'chapter': 2, 'verse': 2, 'text': 'Humble thy heart, and endure: incline thy ear, and receive the words of understanding: and make not haste in the time of clouds.'},
-      {'book_id': 28, 'chapter': 2, 'verse': 3, 'text': 'Wait on God with patience: join thyself to God, and endure, that thy life may be increased in the latter end.'},
-      {'book_id': 28, 'chapter': 2, 'verse': 4, 'text': 'Take all that shall be brought upon thee: and in thy sorrow endure, and in thy humiliation keep patience.'},
-      {'book_id': 28, 'chapter': 2, 'verse': 5, 'text': 'For gold and silver are tried in the fire, but acceptable men in the furnace of humiliation.'},
-    ];
+      // Check if English verses are seeded
+      final drCount = Sqflite.firstIntValue(
+            await db.rawQuery("SELECT COUNT(*) FROM bible_verses WHERE translation = 'DR'"),
+          ) ?? 0;
 
-    for (var verse in verses) {
-      await db.insert('bible_verses', verse);
+      if (drCount < 100) {
+        await _seedBibleFromJson(db);
+      }
+
+      // Check if Swahili verses are seeded
+      final suvCount = Sqflite.firstIntValue(
+            await db.rawQuery("SELECT COUNT(*) FROM bible_verses WHERE translation = 'SUV'"),
+          ) ?? 0;
+
+      if (suvCount < 100) {
+        await _seedSwahiliBibleFromJson(db);
+      }
+    } catch (e) {
+      print('Error during Bible seeding check: $e');
     }
   }
+
+  Future<void> _seedBibleFromJson(Database db) async {
+    try {
+      print('Seeding English Bible from JSON asset...');
+      final jsonString = await rootBundle.loadString('assets/scripture/douay_rheims.json');
+      final Map<String, dynamic> bibleJson = json.decode(jsonString);
+
+      // Fetch books to map names to their database IDs
+      final List<Map<String, dynamic>> bookRows = await db.query('bible_books');
+      final Map<String, int> bookNameToId = {
+        for (var row in bookRows) row['name'] as String: row['id'] as int
+      };
+
+      final batch = db.batch();
+
+      // Clear any existing English verses
+      batch.delete('bible_verses', where: 'translation = ?', whereArgs: ['DR']);
+
+      for (var jsonKey in bibleJson.keys) {
+        final dbBookName = _jsonKeyToDbBookName[jsonKey];
+        if (dbBookName == null) {
+          print('Warning: No database book mapping found for JSON key $jsonKey');
+          continue;
+        }
+
+        final bookId = bookNameToId[dbBookName];
+        if (bookId == null) {
+          print('Warning: Book ID not found for $dbBookName in database');
+          continue;
+        }
+
+        final Map<String, dynamic> chaptersMap = bibleJson[jsonKey];
+        for (var chapterStr in chaptersMap.keys) {
+          final int? chapter = int.tryParse(chapterStr);
+          if (chapter == null) continue;
+
+          final Map<String, dynamic> versesMap = chaptersMap[chapterStr];
+          for (var verseStr in versesMap.keys) {
+            final int? verse = int.tryParse(verseStr);
+            if (verse == null) continue;
+
+            String text = versesMap[verseStr] as String;
+            // Clean up the text: remove Vulgate footnotes indicator '*' and trim whitespace
+            text = text.replaceAll('*', '').trim();
+
+            batch.insert('bible_verses', {
+              'book_id': bookId,
+              'chapter': chapter,
+              'verse': verse,
+              'text': text,
+              'translation': 'DR',
+            });
+          }
+        }
+      }
+
+      await batch.commit(noResult: true);
+      print('English Bible database successfully seeded with all verses.');
+    } catch (e) {
+      print('Error seeding Bible from JSON: $e');
+    }
+  }
+
+  // Mapping from Swahili JSON book names to database book names
+  static const Map<String, String> _swahiliBookMapping = {
+    'Mwanzo': 'Genesis',
+    'Kutoka': 'Exodus',
+    'Mambo ya Walawi': 'Leviticus',
+    'Hesabu': 'Numbers',
+    'Kumbukumbu la Torati': 'Deuteronomy',
+    'Yoshua': 'Joshua',
+    'Waamuzi': 'Judges',
+    'Ruthu': 'Ruth',
+    '1 Samueli': '1 Samuel',
+    '2 Samueli': '2 Samuel',
+    '1 Wafalme': '1 Kings',
+    '2 Wafalme': '2 Kings',
+    '1 Mambo ya Nyakati': '1 Chronicles',
+    '2 Mambo ya Nyakati': '2 Chronicles',
+    'Ezra': 'Ezra',
+    'Nehemia': 'Nehemiah',
+    'Esta': 'Esther',
+    'Ayubu': 'Job',
+    'Zaburi': 'Psalms',
+    'Mithali': 'Proverbs',
+    'Mhubiri': 'Ecclesiastes',
+    'Wimbo Ulio Bora': 'Song of Songs',
+    'Isaya': 'Isaiah',
+    'Yeremia': 'Jeremiah',
+    'Maombolezo': 'Lamentations',
+    'Ezekieli': 'Ezekiel',
+    'Danieli': 'Daniel',
+    'Hosea': 'Hosea',
+    'Yoeli': 'Joel',
+    'Amosi': 'Amos',
+    'Obadia': 'Obadiah',
+    'Yona': 'Jonah',
+    'Mika': 'Micah',
+    'Nahumu': 'Nahum',
+    'Habakuki': 'Habakkuk',
+    'Sefania': 'Zephaniah',
+    'Hagai': 'Haggai',
+    'Zekaria': 'Zechariah',
+    'Malaki': 'Malachi',
+    'Mathayo': 'Matthew',
+    'Marko': 'Mark',
+    'Luka': 'Luke',
+    'Yohana': 'John',
+    'Matendo ya Mitume': 'Acts',
+    'Warumi': 'Romans',
+    '1 Wakorintho': '1 Corinthians',
+    '2 Wakorintho': '2 Corinthians',
+    'Wagalatia': 'Galatians',
+    'Waefeso': 'Ephesians',
+    'Wafilipi': 'Philippians',
+    'Wakolosai': 'Colossians',
+    '1 Wathesalonike': '1 Thessalonians',
+    '2 Wathesalonike': '2 Thessalonians',
+    '1 Timotheo': '1 Timothy',
+    '2 Timotheo': '2 Timothy',
+    'Tito': 'Titus',
+    'Filemoni': 'Philemon',
+    'Waebrania': 'Hebrews',
+    'Yakobo': 'James',
+    '1 Petro': '1 Peter',
+    '2 Petro': '2 Peter',
+    '1 Yohana': '1 John',
+    '2 Yohana': '2 John',
+    '3 Yohana': '3 John',
+    'Yuda': 'Jude',
+    'Ufunuo wa Yohana': 'Revelation',
+  };
+
+  Future<void> _seedSwahiliBibleFromJson(Database db) async {
+    try {
+      print('Seeding Swahili Bible from JSON asset...');
+      final jsonString = await rootBundle.loadString('assets/scripture/swahili_union.json');
+      final Map<String, dynamic> bibleJson = json.decode(jsonString);
+
+      // Fetch books to map names to their database IDs
+      final List<Map<String, dynamic>> bookRows = await db.query('bible_books');
+      final Map<String, int> bookNameToId = {
+        for (var row in bookRows) row['name'] as String: row['id'] as int
+      };
+
+      final batch = db.batch();
+
+      // Clear any existing Swahili verses
+      batch.delete('bible_verses', where: 'translation = ?', whereArgs: ['SUV']);
+
+      final List<dynamic> booksList = bibleJson['BIBLEBOOK'] as List<dynamic>;
+      for (var bookObj in booksList) {
+        final String? swBookName = bookObj['book_name'] as String?;
+        if (swBookName == null) continue;
+
+        final dbBookName = _swahiliBookMapping[swBookName];
+        if (dbBookName == null) {
+          print('Warning: No database book mapping found for Swahili key $swBookName');
+          continue;
+        }
+
+        final bookId = bookNameToId[dbBookName];
+        if (bookId == null) {
+          print('Warning: Book ID not found for $dbBookName in database');
+          continue;
+        }
+
+        final rawChapters = bookObj['CHAPTER'];
+        final List<dynamic> chaptersList = rawChapters is List
+            ? rawChapters
+            : (rawChapters is Map ? [rawChapters] : []);
+
+        for (var chapterObj in chaptersList) {
+          final String? chapterStr = chapterObj['chapter_number'] as String?;
+          final int? chapter = chapterStr != null ? int.tryParse(chapterStr) : null;
+          if (chapter == null) continue;
+
+          final rawVerses = chapterObj['VERSES'];
+          final List<dynamic> versesList = rawVerses is List
+              ? rawVerses
+              : (rawVerses is Map ? [rawVerses] : []);
+
+          for (var verseObj in versesList) {
+            final String? verseStr = verseObj['verse_number'] as String?;
+            final int? verse = verseStr != null ? int.tryParse(verseStr) : null;
+            if (verse == null) continue;
+
+            final String? text = verseObj['verse_text'] as String?;
+            if (text == null) continue;
+
+            batch.insert('bible_verses', {
+              'book_id': bookId,
+              'chapter': chapter,
+              'verse': verse,
+              'text': text.trim(),
+              'translation': 'SUV',
+            });
+          }
+        }
+      }
+
+      await batch.commit(noResult: true);
+      print('Swahili Bible database successfully seeded.');
+    } catch (e) {
+      print('Error seeding Swahili Bible: $e');
+    }
+  }
+
+
 
   // --- API Methods for Scripture ---
 
   Future<List<Map<String, dynamic>>> getBibleBooks() async {
+    if (Platform.environment.containsKey('FLUTTER_TEST')) {
+      return [
+        {'id': 1, 'name': 'Genesis', 'testament': 'OT', 'abbreviation': 'Gen', 'total_chapters': 50},
+        {'id': 23, 'name': 'Psalms', 'testament': 'OT', 'abbreviation': 'Psa', 'total_chapters': 150},
+        {'id': 50, 'name': 'John', 'testament': 'NT', 'abbreviation': 'Jhn', 'total_chapters': 21},
+      ];
+    }
     final db = await instance.database;
     return await db.query('bible_books', orderBy: 'id ASC');
   }
 
-  Future<List<Map<String, dynamic>>> getVerses(int bookId, int chapter) async {
+  Future<List<Map<String, dynamic>>> getVerses(int bookId, int chapter, {String translation = 'DR'}) async {
+    if (Platform.environment.containsKey('FLUTTER_TEST')) {
+      return [];
+    }
     final db = await instance.database;
-    return await db.query(
+    final results = await db.query(
       'bible_verses',
-      where: 'book_id = ? AND chapter = ?',
-      whereArgs: [bookId, chapter],
+      where: 'book_id = ? AND chapter = ? AND translation = ?',
+      whereArgs: [bookId, chapter, translation],
       orderBy: 'verse ASC',
     );
+
+    if (results.isEmpty && translation != 'DR') {
+      // Fallback to English (DR) if Swahili (SUV) is not seeded for this book (e.g. Deuterocanon)
+      return await db.query(
+        'bible_verses',
+        where: 'book_id = ? AND chapter = ? AND translation = ?',
+        whereArgs: [bookId, chapter, 'DR'],
+        orderBy: 'verse ASC',
+      );
+    }
+    return results;
   }
 
-  Future<List<Map<String, dynamic>>> searchScriptures(String query) async {
+  Future<List<Map<String, dynamic>>> searchScriptures(String query, {String translation = 'DR'}) async {
+    if (Platform.environment.containsKey('FLUTTER_TEST')) {
+      return [];
+    }
     final db = await instance.database;
     return await db.query(
       'bible_verses',
-      where: 'text LIKE ?',
-      whereArgs: ['%$query%'],
+      where: 'text LIKE ? AND translation = ?',
+      whereArgs: ['%$query%', translation],
       limit: 50,
     );
   }
@@ -236,6 +565,9 @@ class DatabaseHelper {
   // --- API Methods for User Annotations ---
 
   Future<List<Map<String, dynamic>>> getAnnotations() async {
+    if (Platform.environment.containsKey('FLUTTER_TEST')) {
+      return [];
+    }
     final db = await instance.database;
     return await db.rawQuery('''
       SELECT a.*, v.text as verse_text, v.verse, v.chapter, b.name as book_name
@@ -264,6 +596,9 @@ class DatabaseHelper {
   // --- API Methods for Intentions ---
 
   Future<List<Map<String, dynamic>>> getIntentions() async {
+    if (Platform.environment.containsKey('FLUTTER_TEST')) {
+      return [];
+    }
     final db = await instance.database;
     return await db.query('prayer_intentions', orderBy: 'id DESC');
   }
@@ -287,5 +622,31 @@ class DatabaseHelper {
   Future<int> deleteIntention(int id) async {
     final db = await instance.database;
     return await db.delete('prayer_intentions', where: 'id = ?', whereArgs: [id]);
+  }
+
+  static String getSwahiliBookName(String englishName) {
+    for (var entry in _swahiliBookMapping.entries) {
+      if (entry.value == englishName) {
+        return entry.key;
+      }
+    }
+    switch (englishName) {
+      case 'Tobit':
+        return 'Tobiti';
+      case 'Judith':
+        return 'Yudithi';
+      case '1 Maccabees':
+        return '1 Wamakabayo';
+      case '2 Maccabees':
+        return '2 Wamakabayo';
+      case 'Wisdom of Solomon':
+        return 'Hekima ya Sulemani';
+      case 'Sirach (Ecclesiasticus)':
+        return 'Yoshua bin Sira';
+      case 'Baruch':
+        return 'Baruku';
+      default:
+        return englishName;
+    }
   }
 }

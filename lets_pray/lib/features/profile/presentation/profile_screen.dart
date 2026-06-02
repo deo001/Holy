@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database_helper.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/localization/app_localizations.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   String _userName = 'Faithful Servant';
   List<Map<String, dynamic>> _annotations = [];
   bool _isLoading = true;
@@ -25,10 +27,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadAnnotations() async {
     final list = await DatabaseHelper.instance.getAnnotations();
-    setState(() {
-      _annotations = list;
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _annotations = list;
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _deleteAnnotation(int id) async {
@@ -36,33 +40,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
     HapticFeedback.lightImpact();
     _loadAnnotations();
     if (mounted) {
+      final locale = ref.read(localeProvider);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Highlight cleared')),
+        SnackBar(
+          content: Text(
+            locale == 'sw' ? 'Alama imeondolewa' : 'Highlight cleared',
+          ),
+        ),
       );
     }
   }
 
   void _editName() {
     final controller = TextEditingController(text: _userName);
+    final locale = ref.read(localeProvider);
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           backgroundColor: AppTheme.surfaceDark,
-          title: const Text('Update Profile Name'),
+          title: Text(
+            locale == 'sw' ? 'Badilisha Jina la Wasifu' : 'Update Profile Name',
+          ),
           content: TextField(
             controller: controller,
-            decoration: const InputDecoration(
-              hintText: 'Enter name',
-              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surfaceLightDark)),
-              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.liturgicalGold)),
+            decoration: InputDecoration(
+              hintText: locale == 'sw' ? 'Andika jina...' : 'Enter name',
+              enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surfaceLightDark)),
+              focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.liturgicalGold)),
             ),
             style: const TextStyle(color: AppTheme.textPrimary),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('CANCEL', style: TextStyle(color: AppTheme.textSecondary)),
+              child: Text(
+                locale == 'sw' ? 'GHAIRI' : 'CANCEL',
+                style: const TextStyle(color: AppTheme.textSecondary),
+              ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -78,7 +93,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 }
                 Navigator.pop(context);
               },
-              child: const Text('SAVE'),
+              child: Text(locale == 'sw' ? 'HIFADHI' : 'SAVE'),
             ),
           ],
         );
@@ -88,9 +103,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final locale = ref.watch(localeProvider);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('MY PRAYER SPACE'),
+        title: Text(AppStrings.of(ref, 'profile_title')),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppTheme.liturgicalGold))
@@ -117,7 +134,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              _userName,
+                              locale == 'sw' && _userName == 'Faithful Servant'
+                                  ? 'Mtumishi Mwaminifu'
+                                  : _userName,
                               style: Theme.of(context).textTheme.displayMedium?.copyWith(
                                     fontSize: 22,
                                     fontWeight: FontWeight.bold,
@@ -130,9 +149,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ],
                         ),
-                        const Text(
-                          'Local Device Account',
-                          style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
+                        Text(
+                          locale == 'sw' ? 'Akaunti ya Kifaa' : 'Local Device Account',
+                          style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
                         ),
                       ],
                     ),
@@ -141,7 +160,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   // 2. Settings Section
                   Text(
-                    'APP CONFIGURATION',
+                    AppStrings.of(ref, 'profile_settings').toUpperCase(),
                     style: Theme.of(context).textTheme.labelLarge,
                   ),
                   const SizedBox(height: 12),
@@ -153,9 +172,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     child: Column(
                       children: [
+                        // Language Dropdown
+                        ListTile(
+                          title: Text(
+                            AppStrings.of(ref, 'profile_lang'),
+                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                          ),
+                          trailing: DropdownButton<String>(
+                            value: locale,
+                            dropdownColor: AppTheme.surfaceDark,
+                            underline: const SizedBox(),
+                            icon: const Icon(Icons.keyboard_arrow_down, color: AppTheme.liturgicalGold),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'en',
+                                child: Text('English', style: TextStyle(color: AppTheme.textPrimary)),
+                              ),
+                              DropdownMenuItem(
+                                value: 'sw',
+                                child: Text('Swahili / Kiswahili', style: TextStyle(color: AppTheme.textPrimary)),
+                              ),
+                            ],
+                            onChanged: (val) {
+                              if (val != null) {
+                                ref.read(localeProvider.notifier).state = val;
+                                HapticFeedback.lightImpact();
+                              }
+                            },
+                          ),
+                        ),
+                        const Divider(height: 1, color: AppTheme.surfaceLightDark),
                         SwitchListTile(
-                          title: const Text('Tactile Haptic Feedback'),
-                          subtitle: const Text('Vibrate as you advance Rosary beads'),
+                          title: Text(
+                            locale == 'sw' ? 'Mtetemo (Haptic)' : 'Tactile Haptic Feedback',
+                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                          ),
+                          subtitle: Text(
+                            locale == 'sw' ? 'Tetema unaposogeza shanga za Rozari' : 'Vibrate as you advance Rosary beads',
+                          ),
                           value: _hapticsEnabled,
                           activeColor: AppTheme.liturgicalGold,
                           onChanged: (val) {
@@ -166,8 +220,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const Divider(height: 1, color: AppTheme.surfaceLightDark),
                         SwitchListTile(
-                          title: const Text('Daily Gospel Reflections'),
-                          subtitle: const Text('Receive quiet daily prayer alerts'),
+                          title: Text(
+                            locale == 'sw' ? 'Tahadhari za Sala ya Kila Siku' : 'Daily Gospel Reflections',
+                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                          ),
+                          subtitle: Text(
+                            locale == 'sw' ? 'Pata vikumbusho vya sala tulivu kila siku' : 'Receive quiet daily prayer alerts',
+                          ),
                           value: _dailyReflectionsEnabled,
                           activeColor: AppTheme.liturgicalGold,
                           onChanged: (val) {
@@ -186,7 +245,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'SAVED BIBLE VERSES (${_annotations.length})',
+                        '${AppStrings.of(ref, 'profile_highlights')} (${_annotations.length})',
                         style: Theme.of(context).textTheme.labelLarge,
                       ),
                       IconButton(
@@ -206,10 +265,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(color: AppTheme.surfaceLightDark),
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Text(
-                              'Long-press a verse in the Bible tab to highlight and save it here.',
-                              style: TextStyle(color: AppTheme.textMuted),
+                              AppStrings.of(ref, 'profile_no_highlights'),
+                              style: const TextStyle(color: AppTheme.textMuted),
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -232,6 +291,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             if (colorHex == '#FFFF6B6B') highlightColor = Colors.redAccent;
                             if (colorHex == '#FF4CAF50') highlightColor = Colors.green;
 
+                            final displayBook = locale == 'sw'
+                                ? DatabaseHelper.getSwahiliBookName(book)
+                                : book;
+
                             return Card(
                               margin: const EdgeInsets.only(bottom: 12),
                               color: highlightColor.withOpacity(0.08),
@@ -248,12 +311,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     fontSize: 14,
                                     fontStyle: FontStyle.italic,
                                     fontFamily: 'Lora',
+                                    height: 1.4,
                                   ),
                                 ),
                                 subtitle: Padding(
                                   padding: const EdgeInsets.only(top: 6.0),
                                   child: Text(
-                                    '$book $ch:$vs',
+                                    '$displayBook $ch:$vs',
                                     style: const TextStyle(
                                       color: AppTheme.liturgicalGold,
                                       fontWeight: FontWeight.bold,
@@ -274,7 +338,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   // 4. Privacy Footer
                   Center(
                     child: Text(
-                      'All scripture notes and intentions are saved directly on this local device. Your prayer intentions are private to you.',
+                      locale == 'sw'
+                          ? 'Nia zote za sala na mistari iliyowekwa alama vinahifadhiwa moja kwa moja kwenye kifaa chako cha ndani. Nia zako za sala ni siri kwako tu.'
+                          : 'All scripture notes and intentions are saved directly on this local device. Your prayer intentions are private to you.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontSize: 11,
                             color: AppTheme.textMuted,
