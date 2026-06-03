@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../rosary/presentation/rosary_notifier.dart';
+import '../../game/presentation/bible_quiz_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   final Function(int) onNavigate;
@@ -232,6 +233,61 @@ class DashboardScreen extends ConsumerWidget {
                                 locale == 'sw'
                                     ? 'Soma Agano la Kale, Jipya, na Vitabu vya Deuterokanononi'
                                     : 'Read OT, NT, and Deuterocanonical Books',
+                                style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.arrow_forward_ios, size: 16, color: AppTheme.textMuted),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Bible Quiz Game Card
+              Card(
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const BibleQuizScreen()),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: AppTheme.liturgicalViolet.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.psychology,
+                            color: AppTheme.liturgicalViolet,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                AppStrings.of(ref, 'card_game_title'),
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                AppStrings.of(ref, 'card_game_subtitle'),
                                 style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
                               ),
                             ],

@@ -138,6 +138,7 @@ class RosaryNotifier extends StateNotifier<RosaryState> {
     if (index == 4) return 0.07; // HM 3
     if (index == 5) return 0.08; // Glory Be
     if (index == 6) return 0.09; // Fatima
+ 
 
     // Decades (7 to 71)
     // 5 decades of 13 beads each.
@@ -239,7 +240,7 @@ class RosaryNotifier extends StateNotifier<RosaryState> {
     }
   }
 
-  Future<void> togglePlay() async {
+  Future<void> togglePlay([String locale = 'en']) async {
     _triggerHaptic();
     if (state.isPlaying) {
       await _audioPlayer.pause();

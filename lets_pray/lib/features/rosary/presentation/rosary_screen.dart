@@ -359,7 +359,7 @@ class RosaryScreen extends ConsumerWidget {
 
                   // Play/Pause circular button
                   GestureDetector(
-                    onTap: () => notifier.togglePlay(),
+                    onTap: () => notifier.togglePlay(locale),
                     child: Container(
                       width: 72,
                       height: 72,

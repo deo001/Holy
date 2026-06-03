@@ -168,6 +168,25 @@ class AppStrings {
       'onboarding_slide2_desc': 'Meditate on the mysteries with interactive bead tracking, audio soundscapes, and synchronized prayers.',
       'onboarding_slide3_title': 'Prayer Journal & Inspiration',
       'onboarding_slide3_desc': 'Write down your daily intentions, set reminders, and be inspired by the liturgical calendar.',
+      
+      // Bible Trivia Game
+      'game_title': 'BIBLE TRIVIA',
+      'game_score': 'Score',
+      'game_streak': 'Streak',
+      'game_level_select': 'Select Difficulty',
+      'game_level_beginner': 'Beginner',
+      'game_level_intermediate': 'Intermediate',
+      'game_level_advanced': 'Advanced',
+      'game_explanation': 'Scripture Explanation',
+      'game_next_question': 'Next Question',
+      'game_correct': 'Correct!',
+      'game_incorrect': 'Incorrect',
+      'game_question_count': 'Question',
+      'game_select_any_level': 'Choose a level to start the quiz',
+      'game_restart': 'Change Level',
+      'game_congratulations': 'Great Job!',
+      'card_game_title': 'Bible Trivia',
+      'card_game_subtitle': 'Test your knowledge of the Scriptures',
     },
     'sw': {
       // Bottom Tabs
@@ -325,6 +344,25 @@ class AppStrings {
       'onboarding_slide2_desc': 'Tafakari masumbuko ya rozari kwa ushanga unaoingiliana, sauti za asili, na sala zilizosawazishwa.',
       'onboarding_slide3_title': 'Shajara na Uvuvio',
       'onboarding_slide3_desc': 'Andika nia zako za sala za kila siku, weka vikumbusho vya sala, na uvutiwe na kalenda ya liturjia.',
+      
+      // Bible Trivia Game Swahili
+      'game_title': 'CHEMSHA BONGO',
+      'game_score': 'Alama',
+      'game_streak': 'Mfululizo',
+      'game_level_select': 'Chagua Ugumu',
+      'game_level_beginner': 'Mwanzo',
+      'game_level_intermediate': 'Kati',
+      'game_level_advanced': 'Bobezi',
+      'game_explanation': 'Ufafanuzi wa Maandiko',
+      'game_next_question': 'Swali Lingine',
+      'game_correct': 'Sahihi!',
+      'game_incorrect': 'Sio Sahihi',
+      'game_question_count': 'Swali',
+      'game_select_any_level': 'Chagua kiwango kuanza chemsha bongo',
+      'game_restart': 'Badili Kiwango',
+      'game_congratulations': 'Kazi Nzuri!',
+      'card_game_title': 'Chemsha Bongo ya Biblia',
+      'card_game_subtitle': 'Pima uelewa wako wa Maandiko Matakatifu',
     }
   };
 }
