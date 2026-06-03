@@ -8,6 +8,7 @@ import 'features/bible/presentation/bible_screen.dart';
 import 'features/rosary/presentation/rosary_screen.dart';
 import 'features/journal/presentation/journal_screen.dart';
 import 'features/profile/presentation/profile_screen.dart';
+import 'features/onboarding/presentation/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,7 +33,7 @@ class LetsPrayApp extends StatelessWidget {
       title: "Let's Pray",
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: const MainNavigationShell(),
+      home: const SplashScreen(),
     );
   }
 }

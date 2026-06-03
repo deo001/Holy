@@ -32,6 +32,7 @@ class DatabaseHelper {
         await db.execute('DROP TABLE IF EXISTS bible_books');
         await db.execute('DROP TABLE IF EXISTS user_annotations');
         await db.execute('DROP TABLE IF EXISTS prayer_intentions');
+        await db.execute('DROP TABLE IF EXISTS app_settings');
         await _createDB(db, newVersion);
       },
     );
@@ -45,7 +46,7 @@ class DatabaseHelper {
   Future<void> _createDB(Database db, int version) async {
     // 1. Create Bible Books Table
     await db.execute('''
-      CREATE TABLE bible_books (
+      CREATE TABLE IF NOT EXISTS bible_books (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         testament TEXT NOT NULL, -- 'OT', 'NT', 'DEUTERO'
@@ -56,7 +57,7 @@ class DatabaseHelper {
 
     // 2. Create Bible Verses Table
     await db.execute('''
-      CREATE TABLE bible_verses (
+      CREATE TABLE IF NOT EXISTS bible_verses (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         book_id INTEGER NOT NULL,
         chapter INTEGER NOT NULL,
@@ -69,7 +70,7 @@ class DatabaseHelper {
 
     // 3. Create Bookmarks/Highlights Table
     await db.execute('''
-      CREATE TABLE user_annotations (
+      CREATE TABLE IF NOT EXISTS user_annotations (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         verse_id INTEGER NOT NULL,
         highlight_color TEXT, -- hex string or null
@@ -80,13 +81,21 @@ class DatabaseHelper {
 
     // 4. Create Prayer Intentions Table
     await db.execute('''
-      CREATE TABLE prayer_intentions (
+      CREATE TABLE IF NOT EXISTS prayer_intentions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         description TEXT,
         is_answered INTEGER DEFAULT 0, -- 0 = false, 1 = true
         reminder_time TEXT, -- HH:mm format or null
         created_at TEXT NOT NULL
+      )
+    ''');
+
+    // 5. Create App Settings Table
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS app_settings (
+        key TEXT PRIMARY KEY,
+        value TEXT
       )
     ''');
 
@@ -622,6 +631,31 @@ class DatabaseHelper {
   Future<int> deleteIntention(int id) async {
     final db = await instance.database;
     return await db.delete('prayer_intentions', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // --- API Methods for App Settings ---
+
+  Future<String?> getSetting(String key) async {
+    final db = await database;
+    final results = await db.query(
+      'app_settings',
+      columns: ['value'],
+      where: 'key = ?',
+      whereArgs: [key],
+    );
+    if (results.isNotEmpty) {
+      return results.first['value'] as String?;
+    }
+    return null;
+  }
+
+  Future<void> saveSetting(String key, String value) async {
+    final db = await database;
+    await db.insert(
+      'app_settings',
+      {'key': key, 'value': value},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   static String getSwahiliBookName(String englishName) {

@@ -154,6 +154,20 @@ class AppStrings {
       'profile_highlights': 'MY SCRIPTURE HIGHLIGHTS',
       'profile_no_highlights': 'No highlighted verses yet.',
       'profile_saved': 'Settings saved successfully',
+      
+      // Onboarding & Language Selection
+      'onboarding_lang_select_title': 'Select Language',
+      'onboarding_lang_select_subtitle': 'Choose your preferred language for scripture and prayers.',
+      'onboarding_continue': 'Continue',
+      'onboarding_get_started': 'Get Started',
+      'onboarding_next': 'Next',
+      'onboarding_skip': 'Skip',
+      'onboarding_slide1_title': 'Holy Bible',
+      'onboarding_slide1_desc': 'Read the scriptures offline in English (Douay-Rheims) and Swahili (Union Version). Tap verses to highlight or take notes.',
+      'onboarding_slide2_title': 'Tactile Rosary',
+      'onboarding_slide2_desc': 'Meditate on the mysteries with interactive bead tracking, audio soundscapes, and synchronized prayers.',
+      'onboarding_slide3_title': 'Prayer Journal & Inspiration',
+      'onboarding_slide3_desc': 'Write down your daily intentions, set reminders, and be inspired by the liturgical calendar.',
     },
     'sw': {
       // Bottom Tabs
@@ -297,6 +311,20 @@ class AppStrings {
       'profile_highlights': 'MISTARI ILIYOWEKWA ALAMA',
       'profile_no_highlights': 'Hakuna mistari iliyowekwa alama bado.',
       'profile_saved': 'Mipangilio imehifadhiwa vizuri',
+      
+      // Onboarding & Language Selection Swahili
+      'onboarding_lang_select_title': 'Chagua Lugha',
+      'onboarding_lang_select_subtitle': 'Chagua lugha unayopendelea kwa maandiko na sala.',
+      'onboarding_continue': 'Endelea',
+      'onboarding_get_started': 'Anza Sasa',
+      'onboarding_next': 'Mbele',
+      'onboarding_skip': 'Ruka',
+      'onboarding_slide1_title': 'Biblia Takatifu',
+      'onboarding_slide1_desc': 'Soma Maandiko Matakatifu nje ya mtandao katika Kiingereza na Kiswahili. Gusa mstari kuweka alama au kuandika nia.',
+      'onboarding_slide2_title': 'Rozari ya Kugusa',
+      'onboarding_slide2_desc': 'Tafakari masumbuko ya rozari kwa ushanga unaoingiliana, sauti za asili, na sala zilizosawazishwa.',
+      'onboarding_slide3_title': 'Shajara na Uvuvio',
+      'onboarding_slide3_desc': 'Andika nia zako za sala za kila siku, weka vikumbusho vya sala, na uvutiwe na kalenda ya liturjia.',
     }
   };
 }

@@ -5,10 +5,12 @@ import 'package:lets_pray/main.dart';
 
 void main() {
   testWidgets('App loads and renders bottom navigation smoke test', (WidgetTester tester) async {
-    // Build our app wrapped in ProviderScope and trigger a frame.
+    // Build our app navigation shell and trigger a frame.
     await tester.pumpWidget(
       const ProviderScope(
-        child: LetsPrayApp(),
+        child: MaterialApp(
+          home: MainNavigationShell(),
+        ),
       ),
     );
 
