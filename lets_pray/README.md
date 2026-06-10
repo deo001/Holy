@@ -15,3 +15,5 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+APP_KEY="$(php artisan key:generate --show)" && flyctl secrets set --app sales-plus APP_KEY="$APP_KEY" APP_ENV=production APP_DEBUG=false APP_URL=https://sales-plus.fly.dev LOG_CHANNEL=stderr DB_CONNECTION=pgsql DB_HOST=sales-plus-db.internal DB_PORT=5432 DB_DATABASE=sales_plus DB_USERNAME=sales_plus DB_PASSWORD='yz4o7IPmIzwwAK8'
