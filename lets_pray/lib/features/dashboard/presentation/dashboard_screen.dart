@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:upgrader/upgrader.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../rosary/presentation/rosary_notifier.dart';
@@ -38,269 +39,272 @@ class DashboardScreen extends ConsumerWidget {
           ],
         ),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. Liturgical Season Card Banner
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  gradient: LinearGradient(
-                    colors: [
-                      seasonColor.withOpacity(0.75),
-                      seasonColor.withOpacity(0.35),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+      body: UpgradeAlert(
+        
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Liturgical Season Card Banner
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: LinearGradient(
+                      colors: [
+                        seasonColor.withOpacity(0.75),
+                        seasonColor.withOpacity(0.35),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    border: Border.all(color: seasonColor.withOpacity(0.5)),
                   ),
-                  border: Border.all(color: seasonColor.withOpacity(0.5)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _getFormattedDate(locale),
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      season,
-                      style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                            fontSize: 26,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      locale == 'sw'
-                          ? 'Tukiinue mioyo yetu katika tafakari ya kimya na masomo leo.'
-                          : 'Let us elevate our hearts in quiet contemplation and study today.',
-                      style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.3),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // 2. Saint of the Day Section
-              Text(
-                AppStrings.of(ref, 'dashboard_saint').toUpperCase(),
-                style: Theme.of(context).textTheme.labelLarge,
-              ),
-              const SizedBox(height: 12),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.star, color: AppTheme.liturgicalGold, size: 20),
-                          const SizedBox(width: 8),
-                          Text(
-                            saintName,
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
                       Text(
-                        saintQuote,
+                        _getFormattedDate(locale),
                         style: const TextStyle(
-                          color: AppTheme.textPrimary,
-                          fontSize: 15,
-                          fontStyle: FontStyle.italic,
-                          fontFamily: 'Lora',
-                          height: 1.45,
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.0,
                         ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        season,
+                        style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                              fontSize: 26,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        locale == 'sw'
+                            ? 'Tukiinue mioyo yetu katika tafakari ya kimya na masomo leo.'
+                            : 'Let us elevate our hearts in quiet contemplation and study today.',
+                        style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.3),
                       ),
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
-
-              // 3. Quick Action Devotionals Grid
-              Text(
-                locale == 'sw' ? 'DEVOSHONALI ZA HARAKA' : 'QUICK DEVOTIONALS',
-                style: Theme.of(context).textTheme.labelLarge,
-              ),
-              const SizedBox(height: 12),
-
-              // Rosary Quick Card
-              Card(
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: () => onNavigate(2), // Navigate to Rosary Screen
+                const SizedBox(height: 24),
+        
+                // 2. Saint of the Day Section
+                Text(
+                  AppStrings.of(ref, 'dashboard_saint').toUpperCase(),
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                const SizedBox(height: 12),
+                Card(
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: AppTheme.liturgicalGold.withOpacity(0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.circle_outlined,
-                            color: AppTheme.liturgicalGold,
-                            size: 28,
+                        Row(
+                          children: [
+                            const Icon(Icons.star, color: AppTheme.liturgicalGold, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              saintName,
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          saintQuote,
+                          style: const TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontSize: 15,
+                            fontStyle: FontStyle.italic,
+                            fontFamily: 'Lora',
+                            height: 1.45,
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                AppStrings.of(ref, 'card_rosary_title'),
-                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                locale == 'sw'
-                                    ? 'Leo: Tafakari juu ya Masumbuko ya ${_getMysteryNameSw(rosaryState.activeMysteryKey)}'
-                                    : 'Today: Meditate on the ${rosaryState.activeMysteryKey} Mysteries',
-                                style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(Icons.arrow_forward_ios, size: 16, color: AppTheme.textMuted),
                       ],
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 12),
-
-              // Bible Study Quick Card
-              Card(
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: () => onNavigate(1), // Navigate to Bible Screen
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
-                            shape: BoxShape.circle,
+                const SizedBox(height: 24),
+        
+                // 3. Quick Action Devotionals Grid
+                Text(
+                  locale == 'sw' ? 'DEVOSHONALI ZA HARAKA' : 'QUICK DEVOTIONALS',
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                const SizedBox(height: 12),
+        
+                // Rosary Quick Card
+                Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: () => onNavigate(2), // Navigate to Rosary Screen
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: AppTheme.liturgicalGold.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.circle_outlined,
+                              color: AppTheme.liturgicalGold,
+                              size: 28,
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.menu_book,
-                            color: Colors.blue,
-                            size: 24,
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  AppStrings.of(ref, 'card_rosary_title'),
+                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  locale == 'sw'
+                                      ? 'Leo: Tafakari juu ya Masumbuko ya ${_getMysteryNameSw(rosaryState.activeMysteryKey)}'
+                                      : 'Today: Meditate on the ${rosaryState.activeMysteryKey} Mysteries',
+                                  style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                AppStrings.of(ref, 'card_bible_title'),
-                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                locale == 'sw'
-                                    ? 'Soma Agano la Kale, Jipya, na Vitabu vya Deuterokanononi'
-                                    : 'Read OT, NT, and Deuterocanonical Books',
-                                style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(Icons.arrow_forward_ios, size: 16, color: AppTheme.textMuted),
-                      ],
+                          const Icon(Icons.arrow_forward_ios, size: 16, color: AppTheme.textMuted),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 12),
-
-              // Bible Quiz Game Card
-              Card(
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const BibleQuizScreen()),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: AppTheme.liturgicalViolet.withOpacity(0.1),
-                            shape: BoxShape.circle,
+                const SizedBox(height: 12),
+        
+                // Bible Study Quick Card
+                Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: () => onNavigate(1), // Navigate to Bible Screen
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.menu_book,
+                              color: Colors.blue,
+                              size: 24,
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.psychology,
-                            color: AppTheme.liturgicalViolet,
-                            size: 24,
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  AppStrings.of(ref, 'card_bible_title'),
+                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  locale == 'sw'
+                                      ? 'Soma Agano la Kale, Jipya, na Vitabu vya Deuterokanononi'
+                                      : 'Read OT, NT, and Deuterocanonical Books',
+                                  style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                AppStrings.of(ref, 'card_game_title'),
-                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                AppStrings.of(ref, 'card_game_subtitle'),
-                                style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(Icons.arrow_forward_ios, size: 16, color: AppTheme.textMuted),
-                      ],
+                          const Icon(Icons.arrow_forward_ios, size: 16, color: AppTheme.textMuted),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
-            ],
+                const SizedBox(height: 12),
+        
+                // Bible Quiz Game Card
+                Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const BibleQuizScreen()),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: AppTheme.liturgicalViolet.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.psychology,
+                              color: AppTheme.liturgicalViolet,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  AppStrings.of(ref, 'card_game_title'),
+                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  AppStrings.of(ref, 'card_game_subtitle'),
+                                  style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.arrow_forward_ios, size: 16, color: AppTheme.textMuted),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
       ),
